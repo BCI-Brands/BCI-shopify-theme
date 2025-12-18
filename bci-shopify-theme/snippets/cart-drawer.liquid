@@ -1,0 +1,73 @@
+{% comment %}
+  Cart Drawer Snippet
+  Slide-out cart panel
+{% endcomment %}
+
+<div class="cart-drawer__overlay" data-cart-overlay></div>
+
+<aside class="cart-drawer" data-cart-drawer aria-label="Shopping cart">
+  <div class="cart-drawer__header">
+    <h2 class="cart-drawer__title">Your Bag ({{ cart.item_count }})</h2>
+    <button class="cart-drawer__close" data-cart-close aria-label="Close cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Empty State -->
+  <div class="cart-empty" data-cart-empty style="{% if cart.item_count > 0 %}display: none;{% endif %}">
+    <svg class="cart-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+    <h3 class="cart-empty__title">Your bag is empty</h3>
+    <p class="cart-empty__message">Looks like you haven't added anything yet.</p>
+    <a href="/collections/all" class="btn btn--primary" data-cart-close>Start Shopping</a>
+  </div>
+  
+  <!-- Cart Items -->
+  <div class="cart-drawer__items" data-cart-items>
+    {%- for item in cart.items -%}
+      <div class="cart-item" data-cart-item data-line-key="{{ item.key }}">
+        <div class="cart-item__media">
+          <a href="{{ item.url }}">
+            {%- if item.image -%}
+              <img src="{{ item.image | image_url: width: 200 }}" 
+                   alt="{{ item.title | escape }}"
+                   loading="lazy"
+                   width="100"
+                   height="133">
+            {%- endif -%}
+          </a>
+        </div>
+        <div class="cart-item__details">
+          <span class="cart-item__brand">{{ item.vendor }}</span>
+          <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+          {%- unless item.variant.title == 'Default Title' -%}
+            <span class="cart-item__variant">{{ item.variant.title }}</span>
+          {%- endunless -%}
+          <div class="cart-item__quantity">
+            <button class="cart-item__quantity-btn" data-quantity-change="-1" data-line-key="{{ item.key }}">−</button>
+            <span class="cart-item__quantity-value">{{ item.quantity }}</span>
+            <button class="cart-item__quantity-btn" data-quantity-change="1" data-line-key="{{ item.key }}">+</button>
+          </div>
+          <span class="cart-item__price">{{ item.final_line_price | money }}</span>
+          <button class="cart-item__remove" data-remove-item data-line-key="{{ item.key }}">Remove</button>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+  
+  <!-- Cart Footer -->
+  <div class="cart-drawer__footer" data-cart-footer style="{% if cart.item_count == 0 %}display: none;{% endif %}">
+    <div class="cart-drawer__subtotal">
+      <span class="cart-drawer__subtotal-label">Subtotal</span>
+      <span data-cart-subtotal>{{ cart.total_price | money }}</span>
+    </div>
+    <p class="cart-drawer__note">Shipping and taxes calculated at checkout</p>
+    <a href="/checkout" class="btn btn--primary btn--full">Checkout</a>
+    <a href="/cart" class="btn btn--secondary btn--full mt-sm">View Bag</a>
+  </div>
+</aside>

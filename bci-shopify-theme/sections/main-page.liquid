@@ -1,0 +1,85 @@
+{% comment %}
+  Main Page Section
+  Default page content
+{% endcomment %}
+
+<section class="main-page section-padding">
+  <div class="page-width">
+    <header class="page-header">
+      <h1 class="page-header__title">{{ page.title }}</h1>
+    </header>
+    
+    <div class="page-content rte">
+      {{ page.content }}
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+  
+  .page-header__title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+  }
+  
+  .page-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .rte {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  
+  .rte h2 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .rte h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .rte p {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .rte ul,
+  .rte ol {
+    margin-bottom: var(--spacing-md);
+    padding-left: var(--spacing-lg);
+  }
+  
+  .rte li {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .rte a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  
+  .rte img {
+    margin: var(--spacing-xl) 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Page Content",
+  "settings": []
+}
+{% endschema %}

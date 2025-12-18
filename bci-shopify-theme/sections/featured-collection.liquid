@@ -1,0 +1,157 @@
+{% comment %}
+  Featured Collection Section
+  Displays a grid of products from a selected collection
+{% endcomment %}
+
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  assign products_to_show = section.settings.products_to_show
+  assign columns_desktop = section.settings.columns_desktop
+  assign columns_mobile = section.settings.columns_mobile
+-%}
+
+<section class="featured-collection section-padding">
+  <div class="page-width">
+    <div class="featured-collection__header">
+      <div class="section-header section-header--left">
+        {%- if section.settings.overline != blank -%}
+          <p class="section-header__overline">{{ section.settings.overline }}</p>
+        {%- endif -%}
+        <h2 class="section-header__title">{{ section.settings.title | default: collection.title }}</h2>
+        {%- if section.settings.description != blank -%}
+          <p class="section-header__description">{{ section.settings.description }}</p>
+        {%- endif -%}
+      </div>
+      
+      {%- if section.settings.show_view_all and collection.all_products_count > products_to_show -%}
+        <a href="{{ collection.url }}" class="featured-collection__link">
+          View All
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      {%- endif -%}
+    </div>
+    
+    <div class="collection-grid stagger-children" 
+         style="--columns-desktop: {{ columns_desktop }}; --columns-mobile: {{ columns_mobile }};"
+         data-products-grid>
+      {%- if collection != blank -%}
+        {%- for product in collection.products limit: products_to_show -%}
+          {% render 'product-card', product: product, show_brand: section.settings.show_brand %}
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..products_to_show) -%}
+          <div class="product-card">
+            <div class="product-card__media">
+              {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+            <div class="product-card__info">
+              <span class="product-card__brand">Brand Name</span>
+              <h3 class="product-card__title">Product Title</h3>
+              <div class="product-card__price">
+                <span class="product-card__price-current">$149.00</span>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns-mobile, 2), 1fr);
+    gap: var(--spacing-md);
+  }
+  
+  @media (min-width: 768px) {
+    .collection-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-lg);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .collection-grid {
+      grid-template-columns: repeat(var(--columns-desktop, 4), 1fr);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Featured Collection",
+  "tag": "section",
+  "class": "featured-collection-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "overline",
+      "label": "Overline text"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns (desktop)",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "label": "Columns (mobile)",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brand",
+      "label": "Show brand name",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'View All' link",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Collection"
+    }
+  ]
+}
+{% endschema %}

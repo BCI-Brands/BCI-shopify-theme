@@ -1,0 +1,117 @@
+{% comment %}
+  Newsletter Section
+  Email signup with customizable styling
+{% endcomment %}
+
+{%- style -%}
+  #Newsletter-{{ section.id }} {
+    background-color: {{ section.settings.background_color }};
+    color: {{ section.settings.text_color }};
+  }
+{%- endstyle -%}
+
+<section id="Newsletter-{{ section.id }}" class="newsletter">
+  <div class="page-width">
+    <div class="newsletter__inner">
+      {%- if section.settings.title != blank -%}
+        <h2 class="newsletter__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      
+      {%- if section.settings.description != blank -%}
+        <p class="newsletter__description">{{ section.settings.description }}</p>
+      {%- endif -%}
+      
+      {%- form 'customer', id: 'newsletter-form', class: 'newsletter__form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        
+        <input type="email" 
+               name="contact[email]"
+               class="newsletter__input"
+               placeholder="{{ section.settings.placeholder | default: 'Enter your email' }}"
+               required
+               autocomplete="email"
+               autocorrect="off"
+               autocapitalize="off">
+        
+        <button type="submit" class="btn btn--primary">
+          {{ section.settings.button_text | default: 'Subscribe' }}
+        </button>
+        
+        {%- if form.posted_successfully? -%}
+          <p class="newsletter__success">Thank you for subscribing!</p>
+        {%- endif -%}
+        
+        {%- if form.errors -%}
+          <p class="newsletter__error">{{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}</p>
+        {%- endif -%}
+      {%- endform -%}
+      
+      {%- if section.settings.disclaimer != blank -%}
+        <p class="newsletter__disclaimer" style="font-size: 0.75rem; color: #888; margin-top: 1rem;">
+          {{ section.settings.disclaimer }}
+        </p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "tag": "section",
+  "class": "newsletter-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Stay in the Know"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Subscribe to receive updates on new arrivals, exclusive offers, and style inspiration."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Email placeholder",
+      "default": "Enter your email"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Subscribe"
+    },
+    {
+      "type": "text",
+      "id": "disclaimer",
+      "label": "Disclaimer text",
+      "default": "By subscribing, you agree to our Privacy Policy and consent to receive updates."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#F8F7F5"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#0D0D0D"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
+}
+{% endschema %}

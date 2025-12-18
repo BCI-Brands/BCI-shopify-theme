@@ -1,0 +1,53 @@
+{
+  "type": "header",
+  "name": "Header group",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": true,
+        "announcement_text": "Free shipping on orders over $150",
+        "announcement_link_text": "Shop Now"
+      },
+      "blocks": {
+        "brand-1": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "Brand One",
+            "brand_handle": "brand-one"
+          }
+        },
+        "brand-2": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "Brand Two",
+            "brand_handle": "brand-two"
+          }
+        },
+        "brand-3": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "Brand Three",
+            "brand_handle": "brand-three"
+          }
+        },
+        "brand-4": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "Brand Four",
+            "brand_handle": "brand-four"
+          }
+        },
+        "brand-5": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "Brand Five",
+            "brand_handle": "brand-five"
+          }
+        }
+      },
+      "block_order": ["brand-1", "brand-2", "brand-3", "brand-4", "brand-5"]
+    }
+  },
+  "order": ["header"]
+}
