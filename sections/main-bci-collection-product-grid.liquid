@@ -1,0 +1,720 @@
+{{ 'template-collection.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'section-bci-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'bci-collection-filters.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign nav_group = collection.metafields.custom.collection_nav_group.value
+  assign nav_collections = blank
+  assign nav_group_title = blank
+  assign nav_group_title_handle = blank
+  assign show_nav_group_title = false
+  assign requested_view_collection = blank
+  assign requested_collection = blank
+  assign active_collection = collection
+  assign active_collection_handle = collection.handle
+  assign active_collection_url = collection.url
+  assign clear_url = collection.url
+
+  if nav_group != blank
+    assign nav_collections = nav_group.nav_collections.value
+    assign nav_group_title = nav_group.title.value | default: nav_group.title
+    assign nav_group_title_handle = nav_group_title | handleize
+  endif
+
+  if request.query_string contains 'view_collection='
+    assign request_query_parts = request.query_string | split: '&'
+
+    for request_query_part in request_query_parts
+      assign request_query_pair = request_query_part | split: '='
+
+      if request_query_pair.first == 'view_collection' and request_query_pair.size > 1
+        assign requested_view_collection = request_query_pair.last | split: '#' | first
+      endif
+    endfor
+  endif
+
+  if requested_view_collection != blank and nav_collections != blank
+    for nav_collection in nav_collections
+      if nav_collection.handle == requested_view_collection
+        assign requested_collection = collections[requested_view_collection]
+
+        if requested_collection != blank
+          assign active_collection = requested_collection
+          assign active_collection_handle = requested_collection.handle
+          assign active_collection_url = requested_collection.url
+        endif
+
+        break
+      endif
+    endfor
+  endif
+
+  if nav_group_title != blank
+    assign show_nav_group_title = true
+
+    for nav_collection in nav_collections
+      assign nav_collection_title_handle = nav_collection.title | handleize
+
+      if nav_collection_title_handle == nav_group_title_handle
+        assign show_nav_group_title = false
+        break
+      endif
+    endfor
+  endif
+
+  if active_collection_handle != collection.handle
+    assign clear_url = collection.url | append: '?view_collection=' | append: active_collection_handle
+  endif
+-%}
+
+{%- unless section.settings.quick_add == 'none' -%}
+  {{ 'quick-add.css' | asset_url | stylesheet_tag }}
+{%- endunless -%}
+
+{%- if section.settings.quick_add == 'standard' -%}
+  <script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+<section
+  class="bci-collection-grid color-{{ section.settings.color_scheme }}"
+  data-bci-collection-grid
+  data-bci-columns="{{ section.settings.columns_desktop }}"
+  data-section-id="{{ section.id }}"
+  data-shell-collection-url="{{ collection.url }}"
+  data-shell-collection-handle="{{ collection.handle }}"
+  data-active-collection-url="{{ active_collection_url }}"
+  data-active-collection-handle="{{ active_collection_handle }}"
+>
+  {%- paginate active_collection.products by section.settings.products_per_page -%}
+  <div class="bci-filter-sticky-wrap">
+    <div class="bci-collection-toolbar">
+      <div class="bci-collection-toolbar__left">
+        {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+          <button class="bci-filter-toggle" type="button" aria-expanded="false" data-bci-filter-toggle{% if active_collection.products.size == 0 %} disabled{% endif %}>
+            {{ section.settings.filter_label }} <span data-bci-filter-symbol>(+)</span>
+          </button>
+        {%- endif -%}
+
+        {%- if show_nav_group_title -%}
+          <a
+            href="{{ collection.url }}"
+            class="bci-collection-toolbar__title{% if active_collection_handle == collection.handle %} is-active{% endif %}"
+            data-bci-collection-link
+            data-bci-ajax-link
+            data-bci-collection-handle="{{ collection.handle }}"
+            data-bci-fetch-url="{{ collection.url }}"
+          >
+            {{ nav_group_title | escape }}
+          </a>
+        {%- endif -%}
+
+        {%- if nav_collections != blank -%}
+          <nav
+            class="bci-collection-toolbar__menu"
+            aria-label="{{ nav_group_title | default: 'Collection navigation' | escape }}"
+          >
+            {%- for nav_collection in nav_collections -%}
+              {%- liquid
+                assign menu_shell_url = collection.url | append: '?view_collection=' | append: nav_collection.handle
+
+                if nav_collection.handle == collection.handle
+                  assign menu_shell_url = collection.url
+                endif
+              -%}
+
+              <a
+                href="{{ menu_shell_url }}"
+                class="bci-collection-toolbar__menu-link{% if nav_collection.handle == active_collection_handle %} is-active{% endif %}"
+                {% if nav_collection.handle == active_collection_handle %}
+                  aria-current="page"
+                {% endif %}
+                data-bci-collection-link
+                data-bci-ajax-link
+                data-bci-collection-handle="{{ nav_collection.handle }}"
+                data-bci-fetch-url="{{ nav_collection.url }}"
+              >
+                {{ nav_collection.title | escape }}
+              </a>
+            {%- endfor -%}
+          </nav>
+        {%- elsif section.settings.filter_menu != blank -%}
+          <nav class="bci-collection-toolbar__menu" aria-label="Collection menu">
+            {%- for link in section.settings.filter_menu.links -%}
+              {%- liquid
+                assign fallback_link_handle = blank
+                assign fallback_fetch_url = link.url
+                assign fallback_shell_url = link.url
+
+                if link.type == 'collection_link' and link.object != blank
+                  assign fallback_link_handle = link.object.handle
+                  assign fallback_shell_url = collection.url | append: '?view_collection=' | append: fallback_link_handle
+                  assign fallback_fetch_url = link.object.url
+
+                  if fallback_link_handle == collection.handle
+                    assign fallback_shell_url = collection.url
+                    assign fallback_fetch_url = collection.url
+                  endif
+                endif
+              -%}
+
+              <a
+                href="{{ fallback_shell_url }}"
+                class="bci-collection-toolbar__menu-link{% if fallback_link_handle != blank and fallback_link_handle == active_collection_handle %} is-active{% elsif fallback_link_handle == blank and link.active %} is-active{% endif %}"
+                {% if fallback_link_handle != blank and fallback_link_handle == active_collection_handle %}
+                  aria-current="page"
+                {% elsif fallback_link_handle == blank and link.active %}
+                  aria-current="page"
+                {% endif %}
+                {% if fallback_link_handle != blank %}
+                  data-bci-collection-link
+                  data-bci-ajax-link
+                  data-bci-collection-handle="{{ fallback_link_handle }}"
+                  data-bci-fetch-url="{{ fallback_fetch_url }}"
+                {% endif %}
+              >
+                {{ link.title }}
+              </a>
+            {%- endfor -%}
+          </nav>
+        {%- endif -%}
+      </div>
+
+      <div class="bci-collection-toolbar__view">
+        <span>{{ section.settings.view_label }}</span>
+        <button type="button" class="button-show-more" data-bci-grid-view-step="1" aria-label="More columns"{% if active_collection.products.size == 0 or section.settings.columns_desktop >= 6 %} disabled{% endif %}>+</button>
+        <button type="button" class="button-show-less" data-bci-grid-view-step="-1" aria-label="Fewer columns"{% if active_collection.products.size == 0 or section.settings.columns_desktop <= 2 %} disabled{% endif %}>-</button>
+      </div>
+    </div>
+
+    <div data-bci-dynamic-filters>
+      {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+      <form class="bci-filter-panel" data-bci-filter-panel method="get" action="{{ collection.url }}">
+        {%- if active_collection_handle != collection.handle -%}
+          <input type="hidden" name="view_collection" value="{{ active_collection_handle }}" data-bci-view-collection-input>
+        {%- endif -%}
+        <div class="bci-filter-panel__collapse">
+        <div class="bci-filter-panel__inner">
+          {%- if section.settings.enable_sorting -%}
+            {%- assign sort_by = active_collection.sort_by | default: active_collection.default_sort_by -%}
+
+            <div class="bci-filter-group bci-filter-group--sort">
+              <h2 class="bci-filter-group__title">{{ section.settings.sort_label }}</h2>
+
+              <ul class="bci-filter-list list-unstyled">
+                <li>
+                  <label class="bci-filter-option">
+                    <input
+                      type="radio"
+                      name="sort_by"
+                      value="created-descending"
+                      {% if sort_by == 'created-descending' %}checked{% endif %}
+                    >
+                    <span>New Arrivals</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="bci-filter-option">
+                    <input
+                      type="radio"
+                      name="sort_by"
+                      value="best-selling"
+                      {% if sort_by == 'best-selling' %}checked{% endif %}
+                    >
+                    <span>Best Sellers</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="bci-filter-option">
+                    <input
+                      type="radio"
+                      name="sort_by"
+                      value="price-descending"
+                      {% if sort_by == 'price-descending' %}checked{% endif %}
+                    >
+                    <span>Price (High)</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="bci-filter-option">
+                    <input
+                      type="radio"
+                      name="sort_by"
+                      value="price-ascending"
+                      {% if sort_by == 'price-ascending' %}checked{% endif %}
+                    >
+                    <span>Price (Low)</span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.enable_filtering -%}
+            {%- for filter in active_collection.filters -%}
+              {%- liquid
+                assign filter_handle = filter.label | handleize
+              -%}
+
+              <div class="bci-filter-group bci-filter-group--{{ filter_handle }}" data-filter-type="{{ filter.type }}">
+                <h2 class="bci-filter-group__title">{{ filter.label | escape }}</h2>
+
+                {%- if filter.type == 'list' or filter.type == 'boolean' -%}
+                  {%- comment -%} Separate numeric values (e.g. 0,2,4) from text values so numbers render horizontally {%- endcomment -%}
+                  {%- liquid
+                    assign has_numeric = false
+                    assign has_text = false
+                    for value in filter.values
+                      assign val_plus = value.label | plus: 0 | append: ''
+                      assign val_clean = value.label | strip
+                      if val_plus == val_clean or val_clean == '0'
+                        assign has_numeric = true
+                      else
+                        assign has_text = true
+                      endif
+                    endfor
+                  -%}
+
+                  {%- if has_numeric -%}
+                    <ul class="bci-filter-list bci-filter-list--numeric list-unstyled">
+                      {%- for value in filter.values -%}
+                        {%- assign val_plus = value.label | plus: 0 | append: '' -%}
+                        {%- assign val_clean = value.label | strip -%}
+                        {%- if val_plus == val_clean or val_clean == '0' -%}
+                          <li>
+                            <label class="bci-filter-option{% if value.count == 0 and value.active == false %} is-disabled{% endif %}">
+                              <input
+                                type="checkbox"
+                                name="{{ value.param_name }}"
+                                value="{{ value.value }}"
+                                {% if value.active %}checked{% endif %}
+                                {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                              >
+                              <span>{{ value.label | escape }}</span>
+                            </label>
+                          </li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+
+                  {%- if has_text -%}
+                    <ul class="bci-filter-list list-unstyled">
+                      {%- for value in filter.values -%}
+                        {%- assign val_plus = value.label | plus: 0 | append: '' -%}
+                        {%- assign val_clean = value.label | strip -%}
+                        {%- unless val_plus == val_clean or val_clean == '0' -%}
+                          <li>
+                            <label class="bci-filter-option{% if value.count == 0 and value.active == false %} is-disabled{% endif %}">
+                              <input
+                                type="checkbox"
+                                name="{{ value.param_name }}"
+                                value="{{ value.value }}"
+                                {% if value.active %}checked{% endif %}
+                                {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                              >
+                              <span>{{ value.label | escape }}</span>
+                            </label>
+                          </li>
+                        {%- endunless -%}
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                {%- elsif filter.type == 'price_range' -%}
+                  <div class="bci-filter-price">
+                    <label>
+                      <span>Min</span>
+                      <input
+                        name="{{ filter.min_value.param_name }}"
+                        type="number"
+                        min="0"
+                        {% if filter.min_value.value %}
+                          value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                        {% endif %}
+                      >
+                    </label>
+
+                    <label>
+                      <span>Max</span>
+                      <input
+                        name="{{ filter.max_value.param_name }}"
+                        type="number"
+                        min="0"
+                        {% if filter.max_value.value %}
+                          value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                        {% endif %}
+                      >
+                    </label>
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+        <div class="bci-filter-actions">
+          <button type="submit" class="bci-filter-actions__apply">
+            {{ section.settings.apply_label }}
+          </button>
+        {% unless active_collection.products.size == 0 %} 
+          <a href="{{ clear_url }}" class="bci-filter-actions__clear">
+            {{ section.settings.clear_label }}
+          </a>
+          {% endunless %}
+        </div>
+        </div>
+      </form>
+      {%- endif -%}
+        </div>
+    </div>
+
+    {%- if section.settings.show_brand_hero -%}
+        <div class="bci-collection-hero">
+          {%- liquid
+            assign hero_metafield_images = collection.metafields.custom.collection_hero_images.value
+            assign hero_images_count = 0
+
+            if hero_metafield_images != blank
+              assign hero_images_count = hero_metafield_images | size
+            elsif section.settings.hero_image_1 != blank
+              assign hero_images_count = 1
+            elsif collection.image != blank
+              assign hero_images_count = 1
+            endif
+          -%}
+
+          <div class="bci-collection-hero__media{% if section.settings.show_hero_background %} has-background{% endif %}">
+
+            {%- if hero_images_count > 0 -%}
+              <div
+                class="bci-collection-hero__images bci-collection-hero__images--{{ hero_images_count }}"
+                style="--bci-collection-hero-columns: {{ hero_images_count }};"
+              >
+                {%- if hero_metafield_images != blank -%}
+                  {%- for hero_image in hero_metafield_images -%}
+                    <div class="bci-collection-hero__image-wrap">
+                      {{
+                        hero_image
+                        | image_url: width: 1200
+                        | image_tag:
+                          loading: 'eager',
+                          widths: '375, 550, 750, 900, 1200',
+                          sizes: '(min-width: 750px) calc(100vw / 3), 100vw',
+                          class: 'bci-collection-hero__image'
+                      }}
+                    </div>
+                  {%- endfor -%}
+                {%- elsif section.settings.hero_image_1 != blank -%}
+                  <div class="bci-collection-hero__image-wrap">
+                    {{
+                      section.settings.hero_image_1
+                      | image_url: width: 1200
+                      | image_tag:
+                        loading: 'eager',
+                        widths: '375, 550, 750, 900, 1200',
+                        sizes: '(min-width: 750px) 33vw, 100vw',
+                        class: 'bci-collection-hero__image'
+                    }}
+                  </div>
+                {%- else -%}
+                  <div class="bci-collection-hero__image-wrap">
+                    {{
+                      collection.image
+                      | image_url: width: 1600
+                      | image_tag:
+                        loading: 'eager',
+                        widths: '375, 550, 750, 900, 1200, 1600',
+                        sizes: '100vw',
+                        class: 'bci-collection-hero__image'
+                    }}
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+
+            {%- if hero_images_count > 0 or section.settings.show_hero_background -%}
+              <div class="bci-collection-hero__overlay"></div>
+            {%- endif -%}
+
+            {%- if section.settings.hero_logo != blank -%}
+              {{
+                section.settings.hero_logo
+                | image_url: width: 900
+                | image_tag:
+                  loading: 'eager',
+                  widths: '300, 500, 700, 900',
+                  sizes: '(min-width: 750px) 55vw, 80vw',
+                  class: 'bci-collection-hero__logo'
+              }}
+            {%- else -%}
+              <h1 class="bci-collection-hero__logo-text">
+                {{ collection.title | escape }}
+              </h1>
+            {%- endif -%}
+          </div>
+
+          <div class="bci-collection-hero__content">
+             {%- if section.settings.show_collection_title -%}
+            <h1 class="bci-collection-hero__title">
+              {{ collection.title | escape }}
+            </h1>
+            {%- endif -%}
+
+            {%- if section.settings.show_collection_description and collection.description != blank -%}
+              <div class="bci-collection-hero__description rte">
+                {{ collection.description }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+    {%- endif -%}
+
+    <div data-bci-dynamic-grid>
+
+      {% comment %}
+      <!-- ## Show ammount of products per collection, if needed in the future. -->
+      <p class="bci-collection-results-count">
+        {{ paginate.items }}
+        {% if paginate.items == 1 %}
+        product
+        {% else %}
+        products
+        {% endif %}
+      </p>
+      {% endcomment %}
+
+      <div class="bci-product-grid-container" id="ProductGridContainer">
+        {%- if active_collection.products.size == 0 -%}
+          <div class="bci-collection-empty" id="product-grid" data-id="{{ section.id }}">
+            <p>{{ 'sections.collection_template.empty' | t }}</p>
+            {% unless active_collection.products.size == 0 %} 
+            <a href="{{ clear_url }}" class="bci-filter-actions__clear">{{ section.settings.clear_label }}</a>
+            {% endunless %}
+          </div>
+        {%- else -%}
+          <ul id="product-grid" class="bci-products-grid list-unstyled" data-id="{{ section.id }}">
+            {% assign skip_card_product_styles = false %}
+            {%- for product in active_collection.products -%}
+              {% assign lazy_load = false %}
+              {%- if forloop.index > 6 -%}
+                {%- assign lazy_load = true -%}
+              {%- endif -%}
+              <li class="bci-products-grid__item">
+                {% render 'card-product',
+                  card_product: product,
+                  media_aspect_ratio: section.settings.image_ratio,
+                  image_shape: 'default',
+                  show_secondary_image: section.settings.show_secondary_image,
+                  show_vendor: section.settings.show_vendor,
+                  show_rating: false,
+                  lazy_load: lazy_load,
+                  skip_styles: skip_card_product_styles,
+                  quick_add: section.settings.quick_add,
+                  section_id: section.id
+                %}
+              </li>
+              {%- assign skip_card_product_styles = true -%}
+            {%- endfor -%}
+          </ul>
+
+          {%- if paginate.pages > 1 -%}
+            <div class="bci-pagination">
+              {%- if paginate.next -%}
+                <a
+                  href="{{ paginate.next.url }}"
+                  class="bci-view-more"
+                  data-bci-pagination-link
+                  data-bci-fetch-url="{{ paginate.next.url }}"
+                >
+                  {{ section.settings.view_more_label }}
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "BCI Collection grid",
+  "class": "section",
+  "settings": [
+  {
+    "type": "header",
+    "content": "BCI Brand hero"
+  },
+  {
+    "type": "checkbox",
+    "id": "show_brand_hero",
+    "default": false,
+    "label": "Show brand hero"
+  },
+  {
+    "type": "checkbox",
+    "id": "show_hero_background",
+    "default": false,
+    "label": "Show hero background"
+  },
+  {
+    "type": "paragraph",
+    "content": "Use collection metafield custom.collection_hero_images for collection-specific galleries. The single image below is a fallback and can also use a dynamic source."
+  },
+  {
+    "type": "image_picker",
+    "id": "hero_image_1",
+    "label": "Hero image"
+  },
+  {
+    "type": "image_picker",
+    "id": "hero_logo",
+    "label": "Hero logo"
+  },
+  {
+    "type": "checkbox",
+    "id": "show_collection_description",
+    "default": true,
+    "label": "Show collection description"
+  },
+    {
+      "type": "checkbox",
+      "id": "show_collection_title",
+      "default": true,
+      "label": "Show collection title"
+    },
+    {
+      "type": "text",
+      "id": "filter_label",
+      "default": "Filter",
+      "label": "Filter label"
+    },
+    {
+      "type": "link_list",
+      "id": "filter_menu",
+      "label": "Fallback collection menu"
+    },
+    {
+      "type": "text",
+      "id": "sort_label",
+      "default": "Sort By",
+      "label": "Sort label"
+    },
+    {
+      "type": "text",
+      "id": "view_label",
+      "default": "View:",
+      "label": "View label"
+    },
+    {
+      "type": "text",
+      "id": "apply_label",
+      "default": "Apply",
+      "label": "Apply label"
+    },
+    {
+      "type": "text",
+      "id": "clear_label",
+      "default": "Clear",
+      "label": "Clear label"
+    },
+    {
+      "type": "text",
+      "id": "view_more_label",
+      "default": "View More",
+      "label": "View more label"
+    },
+    {
+      "type": "range",
+      "id": "menu_products_limit",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 6,
+      "label": "Menu collection products to show"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 16,
+      "label": "Products per page"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4,
+      "label": "Default desktop columns"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "default": "1",
+      "label": "Mobile columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "default": "portrait",
+      "label": "Image ratio",
+      "options": [
+        { "value": "adapt", "label": "Adapt" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "square", "label": "Square" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "default": true,
+      "label": "Show secondary image on hover"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "default": true,
+      "label": "Show vendor"
+    },
+    {
+      "type": "select",
+      "id": "quick_add",
+      "default": "none",
+      "label": "Quick add",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "standard", "label": "Standard" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "Enable filtering"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "Enable sorting"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

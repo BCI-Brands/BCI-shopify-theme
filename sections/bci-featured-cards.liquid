@@ -1,0 +1,487 @@
+{{ 'section-bci-featured-cards.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign section_title = section.settings.heading
+  assign desktop_columns = section.settings.desktop_columns
+-%}
+
+<section
+  class="bci-featured-cards section-{{ section.id }}"
+  data-bci-featured-cards
+  style="--bci-fc-padding-top: {{ section.settings.padding_top }}px; --bci-fc-padding-bottom: {{ section.settings.padding_bottom }}px; --bci-fc-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --bci-fc-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;"
+>
+  {%- if section_title != blank -%}
+    <div class="bci-featured-cards__header">
+      <h2 class="bci-featured-cards__heading">
+        {{ section_title | escape }}
+      </h2>
+    </div>
+  {%- endif -%}
+
+  <div class="bci-featured-cards__viewport" data-bci-carousel-viewport>
+    <div
+      class="bci-featured-cards__grid bci-featured-cards__grid--{{ desktop_columns }}-cols"
+      data-bci-carousel-track
+    >
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign card_title = block.settings.title
+          assign card_image = block.settings.image
+          assign card_mobile_image = block.settings.mobile_image
+          assign card_logo = block.settings.logo_image
+          assign card_link = block.settings.link
+        -%}
+
+        <article class="bci-featured-cards__item" {{ block.shopify_attributes }}>
+          {%- if card_link != blank -%}
+            <a href="{{ card_link }}" class="bci-featured-cards__link">
+          {%- else -%}
+            <div class="bci-featured-cards__link">
+          {%- endif -%}
+
+            {%- if card_title != blank -%}
+              <h3 class="bci-featured-cards__title">
+                {{ card_title | escape }}
+              </h3>
+            {%- endif -%}
+
+            <div class="bci-featured-cards__media">
+              {%- if card_image != blank -%}
+                <picture>
+                  {%- if card_mobile_image != blank -%}
+                    <source
+                      media="(max-width: 749px)"
+                      srcset="
+                        {{ card_mobile_image | image_url: width: 360 }} 360w,
+                        {{ card_mobile_image | image_url: width: 540 }} 540w,
+                        {{ card_mobile_image | image_url: width: 720 }} 720w
+                      "
+                      sizes="82vw"
+                    >
+                  {%- endif -%}
+                  {{
+                    card_image
+                    | image_url: width: 1200
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '360, 540, 720, 900, 1200',
+                      sizes: '(min-width: 990px) 33vw, 82vw',
+                      alt: card_title
+                  }}
+                </picture>
+              {%- else -%}
+                {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+              {%- endif -%}
+
+              {%- if card_logo != blank -%}
+                <div
+                  class="bci-featured-cards__logo bci-featured-cards__logo--{{ block.settings.logo_position }}"
+                  style="--bci-featured-card-logo-width: {{ block.settings.logo_width }}px;"
+                >
+                  {{
+                    card_logo
+                    | image_url: width: 600
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '100, 150, 200, 300, 400, 600',
+                      sizes: '(min-width: 990px) 160px, 120px',
+                      alt: card_title
+                  }}
+                </div>
+              {%- endif -%}
+            </div>
+
+          {%- if card_link != blank -%}
+            </a>
+          {%- else -%}
+            </div>
+          {%- endif -%}
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {%- if section.blocks.size > 1 -%}
+    <div class="bci-featured-cards__controls" data-bci-carousel-controls>
+      <button
+        type="button"
+        class="bci-featured-cards__arrow"
+        aria-label="Previous"
+        data-bci-carousel-prev
+      >
+        {{ 'icon-left-arrow.svg' | inline_asset_content }}
+      </button>
+
+      <button
+        type="button"
+        class="bci-featured-cards__arrow"
+        aria-label="Next"
+        data-bci-carousel-next
+      >
+        {{ 'icon-right-arrow.svg' | inline_asset_content }}
+      </button>
+    </div>
+  {%- endif -%}
+</section>
+
+<script>
+  (() => {
+    const initFeaturedCards = () => {
+      document.querySelectorAll('[data-bci-featured-cards]').forEach((section) => {
+        if (section.dataset.bciFeaturedCardsBound === 'true') return;
+
+        section.dataset.bciFeaturedCardsBound = 'true';
+
+        const viewport = section.querySelector('[data-bci-carousel-viewport]');
+        const track = section.querySelector('[data-bci-carousel-track]');
+        const prevButton = section.querySelector('[data-bci-carousel-prev]');
+        const nextButton = section.querySelector('[data-bci-carousel-next]');
+        const controls = section.querySelector('[data-bci-carousel-controls]');
+        const desktopMediaQuery = window.matchMedia('(min-width: 750px)');
+        const originalCount = track.querySelectorAll('.bci-featured-cards__item').length;
+        const originalMarkup = track.innerHTML;
+        let cloneCount = 0;
+        let itemStep = 0;
+        let scrollEndTimer = null;
+        let resizeTimer = null;
+        let desktopLoopActive = false;
+
+        if (!viewport || !track || !prevButton || !nextButton) return;
+
+        const getScrollAmount = () => {
+          const firstItem = track.querySelector('.bci-featured-cards__item');
+          if (!firstItem) return viewport.clientWidth;
+
+          const itemWidth = firstItem.getBoundingClientRect().width;
+          const gap = parseFloat(window.getComputedStyle(track).columnGap || 0);
+
+          return itemWidth + gap;
+        };
+
+        const setInstantScroll = (left) => {
+          const previousBehavior = viewport.style.scrollBehavior;
+          viewport.style.scrollBehavior = 'auto';
+          viewport.scrollLeft = left;
+          viewport.style.scrollBehavior = previousBehavior;
+        };
+
+        const createClone = (sourceNode) => {
+          const clone = sourceNode.cloneNode(true);
+
+          clone.dataset.bciClone = 'true';
+          clone.removeAttribute('id');
+          clone.removeAttribute('shopify:block');
+
+          Array.from(clone.attributes).forEach((attribute) => {
+            if (attribute.name.startsWith('data-shopify')) {
+              clone.removeAttribute(attribute.name);
+            }
+          });
+
+          return clone;
+        };
+
+        const buildDesktopLoop = () => {
+          track.innerHTML = originalMarkup;
+          desktopLoopActive = false;
+          cloneCount = 0;
+          itemStep = getScrollAmount();
+
+          if (originalCount < 2 || !desktopMediaQuery.matches) {
+            setInstantScroll(0);
+            return;
+          }
+
+          const originalItems = Array.from(track.children);
+          const visibleItems = Math.max(1, Math.round(viewport.clientWidth / itemStep));
+          cloneCount = Math.min(originalCount, visibleItems + 1);
+
+          const prependItems = originalItems.slice(-cloneCount).map(createClone);
+          const appendItems = originalItems.slice(0, cloneCount).map(createClone);
+
+          prependItems.reverse().forEach((clone) => {
+            track.insertBefore(clone, track.firstChild);
+          });
+
+          appendItems.forEach((clone) => {
+            track.appendChild(clone);
+          });
+
+          itemStep = getScrollAmount();
+          desktopLoopActive = true;
+          setInstantScroll(cloneCount * itemStep);
+        };
+
+        const normalizeDesktopLoop = () => {
+          if (!desktopLoopActive || cloneCount === 0 || itemStep === 0) return;
+
+          const loopSpan = originalCount * itemStep;
+          const minLeft = cloneCount * itemStep;
+          const maxLeft = (cloneCount + originalCount) * itemStep;
+
+          if (viewport.scrollLeft < minLeft - itemStep / 2) {
+            setInstantScroll(viewport.scrollLeft + loopSpan);
+          } else if (viewport.scrollLeft >= maxLeft - itemStep / 2) {
+            setInstantScroll(viewport.scrollLeft - loopSpan);
+          }
+        };
+
+        const syncControls = () => {
+          const hasMultipleItems = originalCount > 1;
+
+          if (controls) controls.hidden = !hasMultipleItems;
+
+          prevButton.disabled = !hasMultipleItems;
+          nextButton.disabled = !hasMultipleItems;
+        };
+
+        const moveCarousel = (direction) => {
+          if (originalCount < 2) return;
+
+          if (desktopMediaQuery.matches) {
+            if (!desktopLoopActive) buildDesktopLoop();
+
+            viewport.scrollBy({
+              left: direction * itemStep,
+              behavior: 'smooth',
+            });
+
+            return;
+          }
+
+          const maxScrollLeft = Math.max(viewport.scrollWidth - viewport.clientWidth, 0);
+          const scrollAmount = getScrollAmount();
+
+          if (direction > 0) {
+            if (viewport.scrollLeft >= maxScrollLeft - 1) {
+              viewport.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+              viewport.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+          } else if (viewport.scrollLeft <= 1) {
+            viewport.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+          } else {
+            viewport.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+          }
+        };
+
+        prevButton.addEventListener('click', () => {
+          moveCarousel(-1);
+        });
+
+        nextButton.addEventListener('click', () => {
+          moveCarousel(1);
+        });
+
+        viewport.addEventListener(
+          'scroll',
+          () => {
+            if (!desktopLoopActive) return;
+
+            window.clearTimeout(scrollEndTimer);
+            scrollEndTimer = window.setTimeout(normalizeDesktopLoop, 140);
+          },
+          { passive: true }
+        );
+
+        const rebuildCarousel = () => {
+          window.clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => {
+            buildDesktopLoop();
+            syncControls();
+          }, 80);
+        };
+
+        buildDesktopLoop();
+        syncControls();
+
+        if (typeof desktopMediaQuery.addEventListener === 'function') {
+          desktopMediaQuery.addEventListener('change', rebuildCarousel);
+        } else if (typeof desktopMediaQuery.addListener === 'function') {
+          desktopMediaQuery.addListener(rebuildCarousel);
+        }
+
+        window.addEventListener('resize', rebuildCarousel);
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initFeaturedCards);
+    } else {
+      initFeaturedCards();
+    }
+
+    document.addEventListener('shopify:section:load', initFeaturedCards);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "BCI Featured cards",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured Brands"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "select",
+      "id": "desktop_columns",
+      "label": "Desktop columns",
+      "default": "4",
+      "options": [
+        {
+          "value": "3",
+          "label": "3 columns"
+        },
+        {
+          "value": "4",
+          "label": "4 columns"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Vince Camuto"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile image"
+        },
+        {
+          "type": "image_picker",
+          "id": "logo_image",
+          "label": "Logo image"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "label": "Logo width",
+          "min": 40,
+          "max": 240,
+          "step": 4,
+          "unit": "px",
+          "default": 120
+        },
+        {
+          "type": "select",
+          "id": "logo_position",
+          "label": "Logo position",
+          "default": "bottom-left",
+          "options": [
+            {
+              "value": "top-left",
+              "label": "Top left"
+            },
+            {
+              "value": "top-center",
+              "label": "Top center"
+            },
+            {
+              "value": "top-right",
+              "label": "Top right"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            },
+            {
+              "value": "bottom-left",
+              "label": "Bottom left"
+            },
+            {
+              "value": "bottom-center",
+              "label": "Bottom center"
+            },
+            {
+              "value": "bottom-right",
+              "label": "Bottom right"
+            }
+          ]
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BCI Featured cards",
+      "blocks": [
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

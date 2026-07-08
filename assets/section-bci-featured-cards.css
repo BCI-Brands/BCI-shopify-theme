@@ -1,0 +1,229 @@
+.bci-featured-cards {
+  width: 100%;
+  padding: var(--bci-fc-padding-top, 0) 10px var(--bci-fc-padding-bottom, 16px);
+}
+
+.bci-featured-cards__header {
+  margin: 0px 0 20px;
+}
+
+.bci-featured-cards__heading {
+  margin: 0;
+  color: var(--Black, #000);
+  font-family: var(--font-body-family);
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 90%;
+  height: 42px;
+}
+
+.bci-featured-cards__viewport {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.bci-featured-cards__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.bci-featured-cards__grid {
+  display: flex;
+  gap: 10px;
+}
+
+.bci-featured-cards__grid--3-cols {
+  --bci-featured-card-width: calc((100% - 20px) / 3);
+}
+
+.bci-featured-cards__grid--4-cols {
+  --bci-featured-card-width: calc((100% - 30px) / 4);
+}
+
+.bci-featured-cards__item {
+  flex: 0 0 var(--bci-featured-card-width, calc((100% - 20px) / 3));
+  min-width: 0;
+  border: 1px solid #d9d9d9;
+  background: #ffffff;
+  scroll-snap-align: start;
+}
+
+.bci-featured-cards__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.bci-featured-cards__title {
+  margin: 0;
+  padding: 10px;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; 
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.bci-featured-cards__media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.32;
+  overflow: hidden;
+  background: #f4f4f4;
+}
+
+.bci-featured-cards__logo {
+  position: absolute;
+  z-index: 1;
+  max-width: min(var(--bci-featured-card-logo-width, 120px), calc(100% - 24px));
+  width: 100%;
+  pointer-events: none;
+}
+
+.bci-featured-cards__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bci-featured-cards__logo--top-left {
+  top: 12px;
+  left: 12px;
+}
+
+.bci-featured-cards__logo--top-center {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bci-featured-cards__logo--top-right {
+  top: 12px;
+  right: 12px;
+}
+
+.bci-featured-cards__logo--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.bci-featured-cards__logo--bottom-left {
+  bottom: 12px;
+  left: 12px;
+}
+
+.bci-featured-cards__logo--bottom-center {
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bci-featured-cards__logo--bottom-right {
+  right: 12px;
+  bottom: 12px;
+}
+
+.bci-featured-cards__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.bci-featured-cards__media img,
+.bci-featured-cards__media svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bci-featured-cards__media img {
+  object-fit: cover;
+}
+
+.bci-featured-cards__controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.bci-featured-cards__arrow {
+  width: 42px;
+  height: 30px;
+  border: 1px solid #E5E5E5;
+  background: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.bci-featured-cards__arrow:hover,
+.bci-featured-cards__arrow:focus-visible {
+  background: rgba(0,0,0, 0.10);
+  border-color: #CECECE;
+  color: #ffffff;
+  outline: 0;
+}
+
+.bci-featured-cards__arrow[disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.bci-featured-cards__arrow[disabled]:hover,
+.bci-featured-cards__arrow[disabled]:focus-visible {
+  background: #ffffff;
+  border-color: #d9d9d9;
+  color: #111111;
+}
+
+.bci-featured-cards__arrow + .bci-featured-cards__arrow {
+  margin-left: -1px;
+}
+
+@media screen and (max-width: 749px) {
+  .bci-featured-cards {
+    padding: var(--bci-fc-padding-top-mobile, 0) 10px var(--bci-fc-padding-bottom-mobile, 20px);
+  }
+
+  .bci-featured-cards__viewport {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  .bci-featured-cards__grid,
+  .bci-featured-cards__grid--3-cols,
+  .bci-featured-cards__grid--4-cols {
+    gap: 8px;
+  }
+
+  .bci-featured-cards__item {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+  }
+
+  .bci-featured-cards__title {
+    font-size: 18px;
+    padding: 6px 8px;
+  }
+
+  .bci-featured-cards__media {
+    aspect-ratio: 1 / 1.55;
+  }
+
+  .bci-featured-cards__controls {
+    justify-content: flex-start;
+  }
+}

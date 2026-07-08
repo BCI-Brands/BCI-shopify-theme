@@ -1,0 +1,154 @@
+{{ 'section-bci-collection.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign hero_metafield_images = collection.metafields.custom.collection_hero_images.value
+  assign hero_images_count = 0
+
+  if hero_metafield_images != blank
+    assign hero_images_count = hero_metafield_images | size
+  elsif section.settings.hero_image_1 != blank
+    assign hero_images_count = hero_images_count | plus: 1
+  elsif section.settings.use_collection_image and collection.image != blank
+    assign hero_images_count = hero_images_count | plus: 1
+  endif
+-%}
+
+<section class="bci-collection-banner color-{{ section.settings.color_scheme }}">
+  <div class="bci-collection-banner__media">
+    {%- if hero_images_count > 0 -%}
+      <div
+        class="bci-collection-banner__images bci-collection-banner__images--{{ hero_images_count }}"
+        style="--bci-collection-banner-columns: {{ hero_images_count }};"
+      >
+        {%- if hero_metafield_images != blank -%}
+          {%- for hero_image in hero_metafield_images -%}
+            <div class="bci-collection-banner__image-wrap">
+              {{
+                hero_image
+                | image_url: width: 1200
+                | image_tag:
+                  loading: 'eager',
+                  widths: '375, 550, 750, 900, 1200',
+                  sizes: '(min-width: 750px) calc(100vw / 3), 100vw',
+                  class: 'bci-collection-banner__image'
+              }}
+            </div>
+          {%- endfor -%}
+        {%- elsif section.settings.hero_image_1 != blank -%}
+          <div class="bci-collection-banner__image-wrap">
+            {{
+              section.settings.hero_image_1
+              | image_url: width: 1200
+              | image_tag:
+                loading: 'eager',
+                widths: '375, 550, 750, 900, 1200',
+                sizes: '(min-width: 750px) 33vw, 100vw',
+                class: 'bci-collection-banner__image'
+            }}
+          </div>
+        {%- else -%}
+          <div class="bci-collection-banner__image-wrap">
+            {{
+              collection.image
+              | image_url: width: 1600
+              | image_tag:
+                loading: 'eager',
+                widths: '375, 550, 750, 900, 1200, 1600',
+                sizes: '100vw',
+                class: 'bci-collection-banner__image'
+            }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if hero_images_count > 0 -%}
+      <div class="bci-collection-banner__overlay"></div>
+    {%- endif -%}
+
+    {%- if section.settings.logo_overlay != blank -%}
+      {{
+        section.settings.logo_overlay
+        | image_url: width: 900
+        | image_tag:
+          loading: 'eager',
+          widths: '300, 500, 700, 900',
+          sizes: '(min-width: 750px) 55vw, 80vw',
+          class: 'bci-collection-banner__logo'
+      }}
+    {%- elsif section.settings.show_logo_text -%}
+      <div class="bci-collection-banner__logo-text">
+        {{ collection.title | escape }}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.show_collection_title or section.settings.show_collection_description -%}
+    <div class="bci-collection-banner__content">
+      {%- if section.settings.show_collection_title -%}
+        <h1 class="bci-collection-banner__title">
+          {{ collection.title | escape }}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.show_collection_description and collection.description != blank -%}
+        <div class="bci-collection-banner__description rte">
+          {{ collection.description }}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "BCI Collection banner",
+  "class": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "use_collection_image",
+      "default": true,
+      "label": "Use collection image if no custom images are selected"
+    },
+    {
+      "type": "paragraph",
+      "content": "Use collection metafield custom.collection_hero_images for collection-specific galleries. The single image below is a fallback and can also use a dynamic source."
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image_1",
+      "label": "Hero image"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_overlay",
+      "label": "Logo overlay"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_logo_text",
+      "default": true,
+      "label": "Show collection title as logo text when no logo image is selected"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_title",
+      "default": true,
+      "label": "Show collection title below banner"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "default": true,
+      "label": "Show collection description below banner"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,303 @@
+{{ 'section-bci-hero.css' | asset_url | stylesheet_tag }}
+
+<section class="bci-hero bci-hero--{{ section.settings.slide_height }} section-{{ section.id }}" data-bci-hero>
+  <div
+    class="bci-hero__slider"
+    data-bci-hero-slider
+    data-autoplay="{{ section.settings.auto_rotate }}"
+    data-speed="{{ section.settings.change_slides_speed }}"
+  >
+    {%- for block in section.blocks -%}
+      <div
+        class="bci-hero__slide{% if forloop.first %} is-active{% endif %}"
+        data-bci-hero-slide
+        data-slide-index="{{ forloop.index0 }}"
+        {{ block.shopify_attributes }}
+      >
+        <div class="bci-hero__media">
+          {%- if block.settings.desktop_image != blank -%}
+            {{
+              block.settings.desktop_image
+              | image_url: width: 2400
+              | image_tag:
+                loading: 'eager',
+                widths: '750, 1100, 1500, 2000, 2400',
+                sizes: '100vw',
+                class: 'bci-hero__image bci-hero__image--desktop',
+                alt: block.settings.heading
+            }}
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg bci-hero__placeholder bci-hero__image--desktop' }}
+          {%- endif -%}
+
+          {%- if block.settings.mobile_image != blank -%}
+            {{
+              block.settings.mobile_image
+              | image_url: width: 900
+              | image_tag:
+                loading: 'eager',
+                widths: '375, 550, 750, 900',
+                sizes: '100vw',
+                class: 'bci-hero__image bci-hero__image--mobile',
+                alt: block.settings.heading
+            }}
+          {%- elsif block.settings.desktop_image != blank -%}
+            {{
+              block.settings.desktop_image
+              | image_url: width: 900
+              | image_tag:
+                loading: 'eager',
+                widths: '375, 550, 750, 900',
+                sizes: '100vw',
+                class: 'bci-hero__image bci-hero__image--mobile',
+                alt: block.settings.heading
+            }}
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg bci-hero__placeholder bci-hero__image--mobile' }}
+          {%- endif -%}
+
+          <div class="bci-hero__overlay"></div>
+
+          {%- if block.settings.logo_image != blank -%}
+            <div class="bci-hero__brand">
+              {{
+                block.settings.logo_image
+                | image_url: width: 700
+                | image_tag:
+                  loading: 'eager',
+                  widths: '220, 360, 500, 700',
+                  sizes: '(min-width: 750px) 360px, 260px',
+                  class: 'bci-hero__brand-logo',
+                  alt: block.settings.heading
+              }}
+            </div>
+          {%- endif -%}
+
+          <div class="bci-hero__content">
+            {%- if block.settings.heading != blank -%}
+              <h2 class="bci-hero__heading">
+                {{ block.settings.heading | escape }}
+              </h2>
+            {%- endif -%}
+
+            {%- if block.settings.text != blank -%}
+              <div class="bci-hero__text">
+                {{ block.settings.text }}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.button_label != blank -%}
+              <a
+                {% if block.settings.button_link != blank %}
+                  href="{{ block.settings.button_link }}"
+                {% else %}
+                  role="link"
+                  aria-disabled="true"
+                {% endif %}
+                class="bci-hero__button"
+              >
+                {{ block.settings.button_label | escape }}
+              </a>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+
+  {%- if section.blocks.size > 1 -%}
+    <div class="bci-hero__arrows">
+      <button class="bci-hero__arrow bci-hero__arrow--prev" type="button" aria-label="Previous slide" data-bci-hero-prev>
+        <span class="svg-wrapper" aria-hidden="true">
+          {{ 'icon-arrow-left.svg' | inline_asset_content }}
+        </span>
+      </button>
+      <button class="bci-hero__arrow bci-hero__arrow--next" type="button" aria-label="Next slide" data-bci-hero-next>
+        <span class="svg-wrapper" aria-hidden="true">
+          {{ 'icon-arrow-right.svg' | inline_asset_content }}
+        </span>
+      </button>
+    </div>
+  {%- endif -%}
+</section>
+
+<script>
+  (() => {
+    const initBciHero = () => {
+      document.querySelectorAll('[data-bci-hero]').forEach((hero) => {
+        if (hero.dataset.bciHeroBound === 'true') return;
+
+        hero.dataset.bciHeroBound = 'true';
+
+        const slider = hero.querySelector('[data-bci-hero-slider]');
+        const slides = Array.from(hero.querySelectorAll('[data-bci-hero-slide]'));
+        const prevButton = hero.querySelector('[data-bci-hero-prev]');
+        const nextButton = hero.querySelector('[data-bci-hero-next]');
+
+        if (!slides.length) return;
+
+        let currentIndex = slides.findIndex((slide) => slide.classList.contains('is-active'));
+
+        if (currentIndex < 0) {
+          currentIndex = 0;
+          slides[0].classList.add('is-active');
+        }
+
+        let autoplayTimer = null;
+
+        const goToSlide = (nextIndex) => {
+          slides[currentIndex].classList.remove('is-active');
+
+          currentIndex = (nextIndex + slides.length) % slides.length;
+
+          slides[currentIndex].classList.add('is-active');
+        };
+
+        const stopAutoplay = () => {
+          if (autoplayTimer) {
+            clearInterval(autoplayTimer);
+            autoplayTimer = null;
+          }
+        };
+
+        const startAutoplay = () => {
+          if (!slider || slides.length < 2) return;
+          if (slider.dataset.autoplay !== 'true') return;
+
+          const speed = parseFloat(slider.dataset.speed) || 5;
+
+          stopAutoplay();
+          autoplayTimer = setInterval(() => {
+            goToSlide(currentIndex + 1);
+          }, speed * 1000);
+        };
+
+        if (prevButton) {
+          prevButton.addEventListener('click', () => {
+            goToSlide(currentIndex - 1);
+            startAutoplay();
+          });
+        }
+
+        if (nextButton) {
+          nextButton.addEventListener('click', () => {
+            goToSlide(currentIndex + 1);
+            startAutoplay();
+          });
+        }
+
+        startAutoplay();
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBciHero);
+    } else {
+      initBciHero();
+    }
+
+    document.addEventListener('shopify:section:load', initBciHero);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "BCI Hero slideshow",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "slide_height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium",
+      "label": "Height"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "label": "Auto rotate slides",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "change_slides_speed",
+      "min": 3,
+      "max": 9,
+      "step": 2,
+      "unit": "s",
+      "label": "Change slides every",
+      "default": 5
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "desktop_image",
+          "label": "Desktop image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile image"
+        },
+        {
+          "type": "image_picker",
+          "id": "logo_image",
+          "label": "Logo image"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Vince Camuto Bestsellers"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Lorem ipsum dolor sit amet para eunitupo<br>treui lorem ipsum dolor sit amet</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Shop Vince Camuto"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BCI Hero slideshow",
+      "blocks": [
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

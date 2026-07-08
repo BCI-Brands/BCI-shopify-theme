@@ -1,0 +1,214 @@
+{{ 'section-bci-product-showcase.css' | asset_url | stylesheet_tag }}
+{{ 'component-swatch.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign selected_collection = section.settings.collection
+  assign products_to_show = section.settings.products_to_show
+-%}
+
+<section
+  class="bci-product-showcase section-{{ section.id }}"
+  style="--bci-ps-padding-top: {{ section.settings.padding_top }}px; --bci-ps-padding-bottom: {{ section.settings.padding_bottom }}px; --bci-ps-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --bci-ps-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;"
+>
+  {%- if section.settings.heading != blank -%}
+    <div class="bci-product-showcase__header">
+      <h2 class="bci-product-showcase__heading">
+        {{ section.settings.heading | escape }}
+      </h2>
+    </div>
+  {%- endif -%}
+
+  <div class="bci-product-showcase__grid">
+    {%- if selected_collection != blank and selected_collection.products_count > 0 -%}
+      {%- for product in selected_collection.products limit: products_to_show -%}
+        {%- liquid
+          assign card_color_option = nil
+          for option in product.options_with_values
+            assign opt_lower = option.name | downcase
+            if opt_lower == 'color' or opt_lower == 'colour'
+              assign card_color_option = option
+            endif
+          endfor
+        -%}
+
+        <article class="bci-product-card bci-product-card--index-{{ forloop.index }}{% if product.media[1] != blank %} has-hover-image{% endif %}">
+          <div class="bci-product-card__media">
+            <a href="{{ product.url }}" class="bci-product-card__media-link" aria-hidden="true" tabindex="-1">
+              {%- if product.featured_media != blank -%}
+                {{
+                  product.featured_media
+                  | image_url: width: 900
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '300, 450, 600, 750, 900',
+                    sizes: '(min-width: 990px) 25vw, 100vw',
+                    class: 'bci-product-card__image bci-product-card__image--primary',
+                    alt: product.featured_media.alt | default: product.title
+                }}
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg bci-product-card__placeholder' }}
+              {%- endif -%}
+
+              {%- if product.media[1] != blank -%}
+                {{
+                  product.media[1]
+                  | image_url: width: 900
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '300, 450, 600, 750, 900',
+                    sizes: '(min-width: 990px) 25vw, 100vw',
+                    class: 'bci-product-card__image bci-product-card__image--secondary',
+                    alt: product.media[1].alt | default: product.title
+                }}
+              {%- endif -%}
+            </a>
+
+            {%- if card_color_option != nil and card_color_option.values.size > 1 -%}
+              {%- assign color_key = 'option' | append: card_color_option.position -%}
+              {%- assign showcase_clean_url = product.url | split: '?' | first -%}
+              {%- capture swatch_links -%}
+                {%- for value in card_color_option.values -%}
+                  {%- assign swatch_variant_id = nil -%}
+                  {%- assign value_str = value | strip -%}
+                  {%- for variant in product.variants -%}
+                    {%- if variant[color_key] == value_str and swatch_variant_id == nil -%}
+                      {%- assign swatch_variant_id = variant.id -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                  {%- if swatch_variant_id != nil -%}
+                    <a
+                      class="card__color-swatch"
+                      href="{{ showcase_clean_url }}?variant={{ swatch_variant_id }}"
+                      data-variant-id="{{ swatch_variant_id }}"
+                      aria-label="{{ value | escape }}"
+                      title="{{ value | escape }}"
+                    >
+                      {%- render 'swatch', swatch: value.swatch, shape: 'square' -%}
+                    </a>
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endcapture -%}
+              {%- unless swatch_links == blank -%}
+                <div class="card__color-swatches" data-handle="{{ product.handle }}">
+                  <span class="card__color-label">Color:</span>
+                  <div class="card__color-swatches-wrapper">
+                    {{ swatch_links }}
+                  </div>
+                </div>
+              {%- endunless -%}
+            {%- endif -%}
+          </div>
+
+          <div class="bci-product-card__info">
+            <h3 class="bci-product-card__title">
+              <a href="{{ product.url }}" class="bci-product-card__title-link">{{ product.title | escape }}</a>
+            </h3>
+
+            {%- if product.vendor != blank -%}
+              <p class="bci-product-card__brand">
+                {{ product.vendor | escape }}
+              </p>
+            {%- endif -%}
+
+            <p class="bci-product-card__price">
+              {%- if product.price_varies -%}
+                From {{ product.price_min | money_without_trailing_zeros }}
+              {%- else -%}
+                {{ product.price | money_without_trailing_zeros }}
+              {%- endif -%}
+            </p>
+          </div>
+        </article>
+      {%- endfor -%}
+    {%- else -%}
+      {%- for i in (1..10) -%}
+        <article class="bci-product-card bci-product-card--index-{{ forloop.index }}">
+          <div class="bci-product-card__media">
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg bci-product-card__placeholder' }}
+          </div>
+
+          <div class="bci-product-card__info">
+            <h3 class="bci-product-card__title">Example product title</h3>
+            <p class="bci-product-card__brand">Brand</p>
+            <p class="bci-product-card__price">$83</p>
+          </div>
+        </article>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BCI Product showcase",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop New Arrivals"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 4,
+      "max": 10,
+      "step": 1,
+      "default": 10
+    }
+  ],
+  "presets": [
+    {
+      "name": "BCI Product showcase"
+    }
+  ]
+}
+{% endschema %}

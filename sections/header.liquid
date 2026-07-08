@@ -1,0 +1,1453 @@
+<link rel="stylesheet" href="{{ 'component-list-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-search.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-menu-drawer.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'section-bci-header.css' | asset_url }}">
+<link
+  rel="stylesheet"
+  href="{{ 'component-cart-notification.css' | asset_url }}"
+  media="print"
+  onload="this.media='all'"
+>
+
+{%- if settings.predictive_search_enabled -%}
+  <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
+{%- if section.settings.menu_type_desktop == 'mega' -%}
+  <link rel="stylesheet" href="{{ 'component-mega-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
+{%- liquid
+  assign bci_header_bar_scheme = blank
+  assign bci_header_menu_scheme = blank
+
+  for scheme in settings.color_schemes
+    if scheme.id == section.settings.color_scheme
+      assign bci_header_bar_scheme = scheme
+    endif
+
+    if scheme.id == section.settings.menu_color_scheme
+      assign bci_header_menu_scheme = scheme
+    endif
+  endfor
+-%}
+
+{%- style -%}
+{%- if section.settings.sticky_header_type == 'reduce-logo-size' -%}
+  .scrolled-past-header .header__heading-logo-wrapper {
+    width: 75%;
+  }
+{%- endif -%}
+  .header-wrapper {
+    --bci-header-logo-height: {{ section.settings.header_logo_height }}px;
+    {%- if bci_header_bar_scheme != blank -%}
+      --bci-header-bar-bg: rgb({{ bci_header_bar_scheme.settings.button.red }}, {{ bci_header_bar_scheme.settings.button.green }}, {{ bci_header_bar_scheme.settings.button.blue }});
+      --bci-header-bar-text: rgb({{ bci_header_bar_scheme.settings.button_label.red }}, {{ bci_header_bar_scheme.settings.button_label.green }}, {{ bci_header_bar_scheme.settings.button_label.blue }});
+      --bci-header-bar-text-muted: rgba({{ bci_header_bar_scheme.settings.button_label.red }}, {{ bci_header_bar_scheme.settings.button_label.green }}, {{ bci_header_bar_scheme.settings.button_label.blue }}, 0.72);
+    {%- endif -%}
+    {%- if bci_header_menu_scheme != blank -%}
+      --bci-header-surface: rgb({{ bci_header_menu_scheme.settings.background.red }}, {{ bci_header_menu_scheme.settings.background.green }}, {{ bci_header_menu_scheme.settings.background.blue }});
+      --bci-header-surface-alt: rgba({{ bci_header_menu_scheme.settings.text.red }}, {{ bci_header_menu_scheme.settings.text.green }}, {{ bci_header_menu_scheme.settings.text.blue }}, 0.08);
+      --bci-header-text: rgb({{ bci_header_menu_scheme.settings.text.red }}, {{ bci_header_menu_scheme.settings.text.green }}, {{ bci_header_menu_scheme.settings.text.blue }});
+      --bci-header-muted: rgba({{ bci_header_menu_scheme.settings.text.red }}, {{ bci_header_menu_scheme.settings.text.green }}, {{ bci_header_menu_scheme.settings.text.blue }}, 0.75);
+      --bci-header-muted-strong: rgba({{ bci_header_menu_scheme.settings.text.red }}, {{ bci_header_menu_scheme.settings.text.green }}, {{ bci_header_menu_scheme.settings.text.blue }}, 0.85);
+    {%- endif -%}
+  }
+
+  .header {
+    padding: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px 0 {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px 0;
+  }
+
+  .section-header {
+    position: sticky; /* This is for fixing a Safari z-index issue. PR #2147 */
+    margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-header {
+      margin-bottom: {{ section.settings.margin_bottom }}px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .header {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app_block = true
+    endif
+  endfor
+-%}
+
+{% liquid
+  assign header_tag = 'div'
+
+  if section.settings.sticky_header_type != 'none'
+    assign header_tag = 'sticky-header'
+  endif
+%}
+
+{%- liquid
+  assign primary_menu_link = section.settings.menu.links.first
+  assign fallback_brands_group = blank
+  assign fallback_categories_group = blank
+  assign header_brands_menu = blank
+  assign header_categories_menu = blank
+  assign default_brand_link = blank
+  assign default_brand_key = 'default'
+  assign default_category_link = blank
+  assign default_category_key = 'default'
+  assign has_header_subnav = false
+  assign shop_all_brands_label = section.settings.shop_all_brands_label | default: '(+) Shop All Brands'
+
+  for block in section.blocks
+    if block.type == 'navigation_menu' and block.settings.menu != blank and block.settings.menu.links != blank
+      if block.settings.menu_group == 'brands' and header_brands_menu == blank
+        assign header_brands_menu = block.settings.menu
+      elsif block.settings.menu_group == 'categories' and header_categories_menu == blank
+        assign header_categories_menu = block.settings.menu
+      endif
+    endif
+  endfor
+
+  if primary_menu_link != blank and primary_menu_link.links != blank
+    if header_brands_menu == blank or header_categories_menu == blank
+      for childlink in primary_menu_link.links
+        assign child_title = childlink.title | downcase
+        if childlink.links != blank
+          if fallback_brands_group == blank and child_title contains 'brand'
+            assign fallback_brands_group = childlink
+          elsif fallback_categories_group == blank and child_title contains 'categor'
+            assign fallback_categories_group = childlink
+          endif
+        endif
+      endfor
+
+      for childlink in primary_menu_link.links
+        if childlink.links != blank
+          if fallback_brands_group == blank
+            assign fallback_brands_group = childlink
+          elsif fallback_categories_group == blank and childlink.handle != fallback_brands_group.handle
+            assign fallback_categories_group = childlink
+          endif
+        endif
+      endfor
+    endif
+  endif
+
+  if header_brands_menu == blank and fallback_brands_group != blank and fallback_brands_group.links != blank
+    assign header_brands_menu = fallback_brands_group
+  endif
+
+  if header_categories_menu == blank and fallback_categories_group != blank and fallback_categories_group.links != blank
+    assign header_categories_menu = fallback_categories_group
+  endif
+
+  if header_brands_menu != blank and header_brands_menu.links != blank
+    for brand_link in header_brands_menu.links
+      if default_brand_link == blank
+        assign default_brand_link = brand_link
+      endif
+
+      if default_brand_link.links == blank and brand_link.links != blank
+        assign default_brand_link = brand_link
+      endif
+    endfor
+  endif
+
+  if header_categories_menu != blank and header_categories_menu.links != blank
+    for category_link in header_categories_menu.links
+      if default_category_link == blank
+        assign default_category_link = category_link
+      endif
+
+      if default_category_link.links == blank and category_link.links != blank
+        assign default_category_link = category_link
+      endif
+    endfor
+  endif
+
+  if default_brand_link != blank
+    assign default_brand_key = default_brand_link.title | handleize
+  endif
+
+  if default_category_link != blank
+    assign default_category_key = default_category_link.title | handleize
+  endif
+
+  if header_brands_menu != blank and header_brands_menu.links != blank
+    assign has_header_subnav = true
+  elsif header_categories_menu != blank and header_categories_menu.links != blank
+    assign has_header_subnav = true
+  endif
+
+  assign header_subnav_visible_by_default = false
+  if request.page_type == 'index' and has_header_subnav
+    assign header_subnav_visible_by_default = true
+  endif
+-%}
+
+<{{ header_tag }}
+  {% if header_tag == 'sticky-header' %}
+    data-sticky-type="{{ section.settings.sticky_header_type }}"
+  {% endif %}
+  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
+>
+  <header class="header bci-header{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if has_app_block %} header--has-app{% endif %}">
+    <div class="bci-header__shell" data-bci-header>
+      <div class="bci-header__bar">
+        <div class="bci-header__bar-inner page-width">
+          <div class="bci-header__left">
+            {%- if has_header_subnav -%}
+              <button
+                type="button"
+                class="bci-header__shop-label bci-header__shop-trigger focus-inset"
+                data-bci-shop-toggle
+                aria-controls="BciHeaderSubnav-{{ section.id }}"
+                aria-expanded="{% if header_subnav_visible_by_default %}true{% else %}false{% endif %}"
+              >
+                Shop
+              </button>
+            {%- else -%}
+              <span class="bci-header__shop-label">Shop</span>
+            {%- endif -%}
+            <button type="button" class="bci-header__mobile-menu-toggle" data-bci-mobile-open>
+              Shop
+            </button>
+          </div>
+
+          <div class="bci-header__brand">
+            {%- if request.page_type == 'index' -%}
+              <h1 class="header__heading">
+            {%- endif -%}
+            <a href="{{ routes.root_url }}" class="bci-header__brand-link link link--text focus-inset">
+              <span class="bci-header__logo-image" aria-label="{{ shop.name | escape }}">
+                {%- if section.settings.header_logo_image != blank -%}
+                  {{
+                    section.settings.header_logo_image
+                    | image_url: width: 900
+                    | image_tag:
+                      loading: 'eager',
+                      widths: '160, 220, 280, 360, 540, 720, 900',
+                      sizes: '(min-width: 990px) 180px, 160px',
+                      alt: shop.name
+                  }}
+                {%- else -%}
+                  {{ 'bci-brands-horiz.svg' | inline_asset_content }}
+                {%- endif -%}
+              </span>
+            </a>
+            {%- if request.page_type == 'index' -%}
+              </h1>
+            {%- endif -%}
+          </div>
+
+          <div class="bci-header__actions">
+            {% render 'header-search', input_id: 'Search-In-Modal' %}
+
+            {%- for block in section.blocks -%}
+              {%- case block.type -%}
+                {%- when '@app' -%}
+                  {% render block %}
+              {%- endcase -%}
+            {%- endfor -%}
+
+            <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart bci-header__cart-link link focus-inset" id="cart-icon-bubble" data-bci-cart-link>
+              {% if cart == empty %}
+                <span class="svg-wrapper">{{ 'icon-bag-2.svg' | inline_asset_content }}</span>
+              {% else %}
+                <span class="svg-wrapper">{{ 'icon-bag-2.svg' | inline_asset_content }}</span>
+              {% endif %}
+              <span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
+              <span class="bci-header__cart-count">({{ cart.item_count }})</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {%- if has_header_subnav -%}
+        {%- liquid
+          assign brands_default_has_links = false
+
+          if default_brand_link != blank and default_brand_link.links != blank
+            assign brands_default_has_links = true
+          endif
+        -%}
+        <div
+          id="BciHeaderSubnav-{{ section.id }}"
+          class="bci-header__homepage-row bci-header__menu-surface color-{{ section.settings.menu_color_scheme }} gradient{% unless header_subnav_visible_by_default %} is-collapsed bci-header__homepage-row--mega-only{% endunless %}"
+          data-bci-subnav
+          data-default-visible="{% if header_subnav_visible_by_default %}true{% else %}false{% endif %}"
+          aria-hidden="{% if header_subnav_visible_by_default %}false{% else %}true{% endif %}"
+        >
+          <div class="bci-header__subnav">
+            {%- if header_brands_menu != blank and header_brands_menu.links != blank -%}
+              {%- for brand_link in header_brands_menu.links limit: 6 -%}
+                <a href="{{ brand_link.url }}" class="bci-header__subnav-link">
+                  {{ brand_link.title | escape }}
+                </a>
+              {%- endfor -%}
+            {%- endif -%}
+
+            <header-menu class="bci-header__subnav-menu">
+              <details id="Details-BciAllBrands-{{ section.id }}">
+                <summary class="bci-header__all-brands-trigger focus-inset" aria-expanded="false">
+                  {{ shop_all_brands_label | escape }}
+                </summary>
+                <div class="bci-header__subnav-mega" tabindex="-1">
+                  {%- if header_brands_menu != blank and header_brands_menu.links != blank -%}
+                    <section
+                      class="bci-header__mega-section"
+                      data-bci-menu-group
+                      data-bci-group-type="brands"
+                      data-default-item="{{ default_brand_key }}"
+                    >
+                      <div class="bci-header__mega-label">
+                        <div class="page-width">{{ header_brands_menu.title | default: 'Brands' | remove: ' Menu' | escape }}</div>
+                      </div>
+                      <div
+                        class="bci-header__mega-grid{% if brands_default_has_links %} has-secondary{% endif %}"
+                        data-bci-menu-grid
+                      >
+                        <div class="bci-header__mega-primary">
+                          <ul class="bci-header__mega-links bci-header__mega-links--brands">
+                            {%- for brand_link in header_brands_menu.links -%}
+                              {%- assign brand_key = brand_link.title | handleize -%}
+                              <li>
+                                <a
+                                  href="{{ brand_link.url }}"
+                                  class="bci-header__mega-item-link{% if brand_key == default_brand_key %} is-active{% endif %}"
+                                  data-bci-menu-item="{{ brand_key }}"
+                                  {% if brand_link.current %}
+                                    aria-current="page"
+                                  {% endif %}
+                                >
+                                  {{ brand_link.title | escape }}
+                                </a>
+                              </li>
+                            {%- endfor -%}
+                          </ul>
+                        </div>
+
+                        <div class="bci-header__mega-secondary">
+                          {%- for brand_link in header_brands_menu.links -%}
+                            {%- assign brand_key = brand_link.title | handleize -%}
+                            <div
+                              class="bci-header__mega-secondary-panel{% if brand_key == default_brand_key %} is-active{% endif %}"
+                              data-bci-menu-panel="{{ brand_key }}"
+                              data-has-links="{% if brand_link.links != blank %}true{% else %}false{% endif %}"
+                            >
+                              {%- if brand_link.links != blank -%}
+                                <ul class="bci-header__menu-list">
+                                  <li>
+                                    <a href="{{ brand_link.url }}" class="bci-header__submenu-link">
+                                      <span class="bci-header__submenu-count"></span>
+                                    </a>
+                                  </li>
+
+                                  {%- for nested_link in brand_link.links -%}
+                                    {%- liquid
+                                      assign submenu_title = nested_link.title | strip
+                                      assign submenu_count = blank
+                                      assign submenu_label = submenu_title
+                                      assign submenu_first_char = submenu_title | slice: 0, 1
+
+                                      if submenu_first_char == '(' and submenu_title contains ') '
+                                        assign submenu_count_base = submenu_title | split: ') ' | first
+                                        assign submenu_count = submenu_count_base | append: ')'
+                                        assign submenu_label = submenu_title | remove_first: submenu_count | strip
+                                      endif
+                                    -%}
+                                    <li>
+                                      <a href="{{ nested_link.url }}" class="bci-header__submenu-link">
+                                        <span class="bci-header__submenu-count">
+                                          {%- if submenu_count != blank -%}{{ submenu_count }}{%- endif -%}
+                                        </span>
+                                        <span>{{ submenu_label | escape }}</span>
+                                      </a>
+                                    </li>
+                                  {%- endfor -%}
+                                </ul>
+                              {%- endif -%}
+                            </div>
+                          {%- endfor -%}
+                        </div>
+
+                        <div class="bci-header__preview">
+                          {%- for brand_link in header_brands_menu.links -%}
+                            {%- liquid
+                              assign brand_key = brand_link.title | handleize
+                              assign preview_image = blank
+                              assign preview_caption = brand_link.title
+
+                              for block in section.blocks
+                                if block.type == 'menu_preview'
+                                  assign preview_block_group = block.settings.menu_group | default: 'categories'
+                                  assign preview_block_key = block.settings.menu_item_label | handleize
+                                  if preview_block_group == 'brands' and preview_block_key == brand_key
+                                    assign preview_image = block.settings.image
+                                    if block.settings.caption != blank
+                                      assign preview_caption = block.settings.caption
+                                    endif
+                                    break
+                                  endif
+                                endif
+                              endfor
+
+                            -%}
+                            <div
+                              class="bci-header__mega-preview-panel{% if brand_key == default_brand_key %} is-active{% endif %}"
+                              data-bci-menu-preview="{{ brand_key }}"
+                            >
+                              <div class="bci-header__preview-media{% if preview_image == blank %} bci-header__preview-media--placeholder{% endif %}">
+                                {%- if preview_image != blank -%}
+                                  {{
+                                    preview_image
+                                    | image_url: width: 900
+                                    | image_tag:
+                                      loading: 'lazy',
+                                      widths: '360, 540, 720, 900',
+                                      sizes: '(min-width: 990px) 43.5rem, 100vw',
+                                      alt: preview_caption
+                                  }}
+                                {%- endif -%}
+                              </div>
+                              <span class="bci-header__preview-caption">{% if preview_image != blank %}{{ preview_caption | escape }}{% endif %}</span>
+                            </div>
+                          {%- endfor -%}
+                        </div>
+                      </div>
+                    </section>
+                  {%- endif -%}
+
+                  {%- if header_categories_menu != blank and header_categories_menu.links != blank -%}
+                    <section
+                      class="bci-header__mega-section"
+                      data-bci-menu-group
+                      data-bci-group-type="categories"
+                      data-default-item="{{ default_category_key }}"
+                    >
+                      <div class="bci-header__mega-label">
+                        <div class="page-width">{{ header_categories_menu.title | default: 'Categories' | remove: ' Menu' | escape }}</div>
+                      </div>
+                      <div
+                        class="bci-header__mega-grid"
+                        data-bci-menu-grid
+                      >
+                        <div class="bci-header__mega-primary">
+                          {%- liquid
+                            assign category_links_size = header_categories_menu.links.size
+                            assign category_links_half = category_links_size | plus: 1 | divided_by: 2
+                          -%}
+                          <ul class="bci-header__mega-links bci-header__mega-links--categories">
+                            {%- for category_link in header_categories_menu.links -%}
+                              {%- if forloop.index <= category_links_half -%}
+                                {%- assign category_key = category_link.title | handleize -%}
+                                <li>
+                                  <a
+                                    href="{{ category_link.url }}"
+                                    class="bci-header__mega-item-link{% if category_key == default_category_key %} is-active{% endif %}"
+                                    data-bci-menu-item="{{ category_key }}"
+                                    {% if category_link.current %}
+                                      aria-current="page"
+                                    {% endif %}
+                                  >
+                                    {{ category_link.title | escape }}
+                                  </a>
+                                </li>
+                              {%- endif -%}
+                            {%- endfor -%}
+                          </ul>
+
+                          <ul class="bci-header__mega-links bci-header__mega-links--categories">
+                            {%- for category_link in header_categories_menu.links -%}
+                              {%- if forloop.index > category_links_half -%}
+                                {%- assign category_key = category_link.title | handleize -%}
+                                <li>
+                                  <a
+                                    href="{{ category_link.url }}"
+                                    class="bci-header__mega-item-link{% if category_key == default_category_key %} is-active{% endif %}"
+                                    data-bci-menu-item="{{ category_key }}"
+                                    {% if category_link.current %}
+                                      aria-current="page"
+                                    {% endif %}
+                                  >
+                                    {{ category_link.title | escape }}
+                                  </a>
+                                </li>
+                              {%- endif -%}
+                            {%- endfor -%}
+                          </ul>
+
+                          <div class="bci-header__mega-secondary">
+                            {%- for category_link in header_categories_menu.links -%}
+                              {%- assign category_key = category_link.title | handleize -%}
+                              <div
+                                class="bci-header__mega-secondary-panel{% if category_key == default_category_key %} is-active{% endif %}"
+                                data-bci-menu-panel="{{ category_key }}"
+                                data-has-links="{% if category_link.links != blank %}true{% else %}false{% endif %}"
+                              >
+                                {%- if category_link.links != blank -%}
+                                  {%- liquid
+                                    assign category_collection = blank
+                                    assign category_count = blank
+
+                                    if category_link.type == 'collection_link' and category_link.object != blank
+                                      assign category_collection = category_link.object
+                                    elsif category_link.url contains '/collections/'
+                                      assign category_handle = category_link.url | split: '/collections/' | last | split: '?' | first | split: '#' | first | split: '/' | first
+                                      if category_handle != blank
+                                        assign category_collection = collections[category_handle]
+                                      endif
+                                    endif
+
+                                    if category_collection != blank
+                                      assign category_count = category_collection.all_products_count
+                                    endif
+                                  -%}
+                                  <ul class="bci-header__menu-list">
+                                    {%- for nested_link in category_link.links -%}
+                                      {%- liquid
+                                        assign submenu_title = nested_link.title | strip
+                                        assign submenu_collection = blank
+                                        assign submenu_count = blank
+                                        assign submenu_label = submenu_title
+                                        assign submenu_first_char = submenu_title | slice: 0, 1
+
+                                        if nested_link.type == 'collection_link' and nested_link.object != blank
+                                          assign submenu_collection = nested_link.object
+                                        elsif nested_link.url contains '/collections/'
+                                          assign submenu_handle = nested_link.url | split: '/collections/' | last | split: '?' | first | split: '#' | first | split: '/' | first
+                                          if submenu_handle != blank
+                                            assign submenu_collection = collections[submenu_handle]
+                                          endif
+                                        endif
+
+                                        if submenu_collection != blank
+                                          assign submenu_count = submenu_collection.all_products_count
+                                        endif
+
+                                        if submenu_count == blank and submenu_first_char == '(' and submenu_title contains ') '
+                                          assign submenu_count_base = submenu_title | split: ') ' | first
+                                          assign submenu_count = submenu_count_base | append: ')'
+                                          assign submenu_label = submenu_title | remove_first: submenu_count | strip
+                                        endif
+                                      -%}
+                                      <li>
+                                        <a href="{{ nested_link.url }}" class="bci-header__submenu-link">
+                                          <span class="bci-header__submenu-count">
+                                            {%- if submenu_count != blank -%}
+                                              {%- if submenu_collection != blank -%}({{ submenu_count }}){%- else -%}{{ submenu_count }}{%- endif -%}
+                                            {%- endif -%}
+                                          </span>
+                                          <span>{{ submenu_label | escape }}</span>
+                                        </a>
+                                      </li>
+                                    {%- endfor -%}
+                                  </ul>
+                                {%- endif -%}
+                              </div>
+                            {%- endfor -%}
+                          </div>
+                        </div>
+
+                        <div class="bci-header__preview">
+                          {%- for category_link in header_categories_menu.links -%}
+                            {%- liquid
+                              assign category_key = category_link.title | handleize
+                              assign preview_image = blank
+                              assign preview_caption = category_link.title
+
+                              for block in section.blocks
+                                if block.type == 'menu_preview'
+                                  assign preview_block_group = block.settings.menu_group | default: 'categories'
+                                  assign preview_block_key = block.settings.menu_item_label | handleize
+                                  if preview_block_group == 'categories' and preview_block_key == category_key
+                                    assign preview_image = block.settings.image
+                                    if block.settings.caption != blank
+                                      assign preview_caption = block.settings.caption
+                                    endif
+                                    break
+                                  endif
+                                endif
+                              endfor
+
+                            -%}
+                            <div
+                              class="bci-header__mega-preview-panel{% if category_key == default_category_key %} is-active{% endif %}"
+                              data-bci-menu-preview="{{ category_key }}"
+                            >
+                              <div class="bci-header__preview-media{% if preview_image == blank %} bci-header__preview-media--placeholder{% endif %}">
+                                {%- if preview_image != blank -%}
+                                  {{
+                                    preview_image
+                                    | image_url: width: 900
+                                    | image_tag:
+                                      loading: 'lazy',
+                                      widths: '360, 540, 720, 900',
+                                      sizes: '(min-width: 990px) 43.5rem, 100vw',
+                                      alt: preview_caption
+                                  }}
+                                {%- endif -%}
+                              </div>
+                              <span class="bci-header__preview-caption">{% if preview_image != blank %}{{ preview_caption | escape }}{% endif %}</span>
+                            </div>
+                          {%- endfor -%}
+                        </div>
+                      </div>
+                    </section>
+                  {%- endif -%}
+                </div>
+              </details>
+            </header-menu>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <div class="bci-header__mobile-overlay" data-bci-mobile-overlay hidden>
+        <div class="bci-header__mobile-backdrop" data-bci-mobile-close></div>
+        <div class="bci-header__mobile-panel bci-header__menu-surface color-{{ section.settings.menu_color_scheme }} gradient" role="dialog" aria-modal="true" aria-label="Menu">
+          <div class="bci-header__mobile-panel-bar">
+            <button type="button" class="bci-header__mobile-close" data-bci-mobile-close>Close</button>
+
+            <div class="bci-header__brand">
+              <a href="{{ routes.root_url }}" class="bci-header__brand-link link link--text focus-inset">
+                <span class="bci-header__logo-image" aria-label="{{ shop.name | escape }}">
+                  {%- if section.settings.header_logo_image != blank -%}
+                    {{
+                      section.settings.header_logo_image
+                      | image_url: width: 900
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '160, 220, 280, 360, 540, 720, 900',
+                        sizes: '160px',
+                        alt: shop.name
+                    }}
+                  {%- else -%}
+                    {{ 'bci-brands-horiz.svg' | inline_asset_content }}
+                  {%- endif -%}
+                </span>
+              </a>
+            </div>
+
+            <div class="bci-header__mobile-panel-actions">
+              <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart bci-header__cart-link link focus-inset" data-bci-cart-link>
+                {% if cart == empty %}
+                  <span class="svg-wrapper">{{ 'icon-bag-2.svg' | inline_asset_content }}</span>
+                {% else %}
+                  <span class="svg-wrapper">{{ 'icon-bag-2.svg' | inline_asset_content }}</span>
+                {% endif %}
+                <span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
+                <span class="bci-header__cart-count">({{ cart.item_count }})</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="bci-header__mobile-search-form-container">
+            <form action="{{ routes.search_url }}" method="get" role="search" class="bci-header__mobile-search-form">
+              <div class="bci-header__mobile-search-field">
+                <span class="svg-wrapper">{{ 'icon-search-3.svg' | inline_asset_content }}</span>
+                <input
+                  type="search"
+                  name="q"
+                  value="{{ search.terms | escape }}"
+                  placeholder="Search"
+                  class="bci-header__mobile-search-input"
+                >
+                <button
+                  type="reset"
+                  class="bci-header__mobile-search-reset{% if search.terms == blank %} is-empty{% endif %}"
+                  aria-label="{{ 'general.search.reset' | t }}"
+                >
+                  Close
+                </button>
+              </div>
+              <button type="submit" class="bci-header__mobile-search-submit">Submit</button>
+            </form>
+          </div>
+
+          {%- if header_brands_menu != blank and header_brands_menu.links != blank -%}
+            <section class="bci-header__mobile-section">
+              <div class="bci-header__mobile-section-label">{{ header_brands_menu.title | default: 'Brands' | escape }}</div>
+              <ul class="bci-header__mobile-list">
+                {%- for brand_link in header_brands_menu.links -%}
+                  <li>
+                    <a href="{{ brand_link.url }}" class="bci-header__mobile-link">
+                      {{ brand_link.title | escape }}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </section>
+          {%- endif -%}
+
+          {%- if header_categories_menu != blank and header_categories_menu.links != blank -%}
+            <section class="bci-header__mobile-section">
+              <div class="bci-header__mobile-section-label">{{ header_categories_menu.title | default: 'Categories' | escape }}</div>
+              <ul class="bci-header__mobile-list">
+                {%- for category_link in header_categories_menu.links -%}
+                  <li>
+                    <a href="{{ category_link.url }}" class="bci-header__mobile-link">
+                      {{ category_link.title | escape }}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </section>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </header>
+</{{ header_tag }}>
+
+{%- if settings.cart_type == 'notification' -%}
+  {%- render 'cart-notification',
+    color_scheme: section.settings.color_scheme,
+    desktop_menu_type: section.settings.menu_type_desktop
+  -%}
+{%- endif -%}
+
+{% javascript %}
+  class StickyHeader extends HTMLElement {
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      this.header = document.querySelector('.section-header');
+      this.headerIsAlwaysSticky =
+        this.getAttribute('data-sticky-type') === 'always' ||
+        this.getAttribute('data-sticky-type') === 'reduce-logo-size';
+      this.headerBounds = {};
+
+      this.setHeaderHeight();
+
+      window.matchMedia('(max-width: 990px)').addEventListener('change', this.setHeaderHeight.bind(this));
+
+      if (this.headerIsAlwaysSticky) {
+        this.header.classList.add('shopify-section-header-sticky');
+      }
+
+      this.currentScrollTop = 0;
+      this.preventReveal = false;
+      this.predictiveSearch = this.querySelector('predictive-search');
+
+      this.onScrollHandler = this.onScroll.bind(this);
+      this.hideHeaderOnScrollUp = () => (this.preventReveal = true);
+
+      this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.addEventListener('scroll', this.onScrollHandler, false);
+
+      this.createObserver();
+    }
+
+    setHeaderHeight() {
+      document.documentElement.style.setProperty('--header-height', `${this.header.offsetHeight}px`);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.removeEventListener('scroll', this.onScrollHandler);
+    }
+
+    createObserver() {
+      let observer = new IntersectionObserver((entries, observer) => {
+        this.headerBounds = entries[0].intersectionRect;
+        observer.disconnect();
+      });
+
+      observer.observe(this.header);
+    }
+
+    onScroll() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (this.predictiveSearch && this.predictiveSearch.isOpen) return;
+
+      if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        this.header.classList.add('scrolled-past-header');
+        if (this.preventHide) return;
+        requestAnimationFrame(this.hide.bind(this));
+      } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        this.header.classList.add('scrolled-past-header');
+        if (!this.preventReveal) {
+          requestAnimationFrame(this.reveal.bind(this));
+        } else {
+          window.clearTimeout(this.isScrolling);
+
+          this.isScrolling = setTimeout(() => {
+            this.preventReveal = false;
+          }, 66);
+
+          requestAnimationFrame(this.hide.bind(this));
+        }
+      } else if (scrollTop <= this.headerBounds.top) {
+        this.header.classList.remove('scrolled-past-header');
+        requestAnimationFrame(this.reset.bind(this));
+      }
+
+      this.currentScrollTop = scrollTop;
+    }
+
+    hide() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
+      this.closeMenuDisclosure();
+      this.closeSearchModal();
+    }
+
+    reveal() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.add('shopify-section-header-sticky', 'animate');
+      this.header.classList.remove('shopify-section-header-hidden');
+    }
+
+    reset() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
+    }
+
+    closeMenuDisclosure() {
+      this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu');
+      this.disclosures.forEach((disclosure) => disclosure.close());
+    }
+
+    closeSearchModal() {
+      this.searchModal = this.searchModal || this.header.querySelector('details-modal');
+      if (this.searchModal) this.searchModal.close(false);
+    }
+  }
+
+  customElements.define('sticky-header', StickyHeader);
+
+  const initBciHeader = () => {
+    document.querySelectorAll('[data-bci-header]').forEach((header) => {
+      if (header.dataset.bciBound === 'true') return;
+
+      header.dataset.bciBound = 'true';
+
+      const megaGroups = header.querySelectorAll('[data-bci-menu-group]');
+
+      megaGroups.forEach((group) => {
+        const menuItems = group.querySelectorAll('[data-bci-menu-item]');
+        const panels = group.querySelectorAll('[data-bci-menu-panel]');
+        const previews = group.querySelectorAll('[data-bci-menu-preview]');
+        const grid = group.querySelector('[data-bci-menu-grid]');
+        const groupType = group.dataset.bciGroupType || 'generic';
+        const defaultItem = group.dataset.defaultItem || menuItems[0]?.dataset.bciMenuItem;
+
+        const getPanelForKey = (key) =>
+          Array.from(panels).find((panel) => panel.dataset.bciMenuPanel === key) || null;
+
+        const renderState = ({ previewKey, selectedKey = null, openSecondaryKey = null }) => {
+          let openPanel = null;
+
+          menuItems.forEach((item) => {
+            item.classList.toggle('is-active', item.dataset.bciMenuItem === selectedKey);
+          });
+
+          panels.forEach((panel) => {
+            const isActive = panel.dataset.bciMenuPanel === openSecondaryKey;
+            panel.classList.toggle('is-active', isActive);
+
+            if (isActive) openPanel = panel;
+          });
+
+          previews.forEach((preview) => {
+            preview.classList.toggle('is-active', preview.dataset.bciMenuPreview === previewKey);
+          });
+
+          if (grid) {
+            const hasSecondary = openPanel?.dataset.hasLinks === 'true';
+            grid.classList.toggle('has-secondary', Boolean(openSecondaryKey && hasSecondary));
+          }
+        };
+
+        if (menuItems.length && defaultItem) {
+          if (groupType === 'categories') {
+            renderState({ previewKey: defaultItem, selectedKey: null, openSecondaryKey: null });
+          } else {
+            renderState({ previewKey: defaultItem, selectedKey: defaultItem, openSecondaryKey: null });
+          }
+        }
+
+        if (groupType === 'categories') {
+          let openSecondaryKey = null;
+          let selectedKey = null;
+
+          menuItems.forEach((item) => {
+            const itemKey = item.dataset.bciMenuItem;
+
+            item.addEventListener('mouseenter', () => {
+              renderState({ previewKey: itemKey, selectedKey, openSecondaryKey });
+            });
+
+            item.addEventListener('focus', () => {
+              renderState({ previewKey: itemKey, selectedKey, openSecondaryKey });
+            });
+
+            item.addEventListener('click', (event) => {
+              const panel = getPanelForKey(itemKey);
+              const hasLinks = panel?.dataset.hasLinks === 'true';
+              const itemHref = item.getAttribute('href') || '';
+              const isPlaceholderLink = itemHref === '#' || itemHref.endsWith('/#');
+
+              if (hasLinks || isPlaceholderLink) {
+                event.preventDefault();
+              }
+
+              selectedKey = itemKey;
+              openSecondaryKey = hasLinks ? itemKey : null;
+              renderState({ previewKey: itemKey, selectedKey, openSecondaryKey });
+            });
+          });
+
+          group.addEventListener('mouseleave', () => {
+            const fallbackKey = selectedKey || defaultItem;
+            if (fallbackKey) {
+              renderState({ previewKey: fallbackKey, selectedKey, openSecondaryKey });
+            }
+          });
+        } else {
+          menuItems.forEach((item) => {
+            const itemKey = item.dataset.bciMenuItem;
+
+            item.addEventListener('mouseenter', () =>
+              renderState({
+                previewKey: itemKey,
+                selectedKey: itemKey,
+                openSecondaryKey: getPanelForKey(itemKey)?.dataset.hasLinks === 'true' ? itemKey : null,
+              })
+            );
+            item.addEventListener('focus', () =>
+              renderState({
+                previewKey: itemKey,
+                selectedKey: itemKey,
+                openSecondaryKey: getPanelForKey(itemKey)?.dataset.hasLinks === 'true' ? itemKey : null,
+              })
+            );
+          });
+        }
+      });
+
+      const desktopDetails = header.querySelector('.bci-header__subnav-menu details');
+      const subnavRow = header.querySelector('[data-bci-subnav]');
+      const shopToggle = header.querySelector('[data-bci-shop-toggle]');
+      const subnavDefaultVisible = subnavRow?.dataset.defaultVisible === 'true';
+
+      const syncSubnavState = () => {
+        if (!subnavRow) return;
+
+        const isOpen = !subnavRow.classList.contains('is-collapsed');
+        subnavRow.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        header.classList.toggle('is-subnav-open', isOpen);
+
+        if (shopToggle) {
+          shopToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+      };
+
+      const setSubnavState = (isOpen) => {
+        if (!subnavRow) return;
+
+        subnavRow.classList.toggle('is-collapsed', !isOpen);
+        syncSubnavState();
+      };
+
+      syncSubnavState();
+
+      if (desktopDetails) {
+        const desktopSummary = desktopDetails.querySelector('summary');
+        const desktopMega = desktopDetails.querySelector('.bci-header__subnav-mega');
+        let isMegaOpen = desktopDetails.open;
+
+        const syncMegaState = (open) => {
+          isMegaOpen = open;
+          desktopSummary.setAttribute('aria-expanded', String(open));
+          header.classList.toggle('is-mega-open', open);
+          if (open) {
+            desktopDetails.setAttribute('open', '');
+          } else {
+            desktopDetails.removeAttribute('open');
+          }
+        };
+
+        const closeDesktopMenu = ({ restoreFocus = false } = {}) => {
+          syncMegaState(false);
+          if (restoreFocus) desktopSummary.focus();
+        };
+
+        const openDesktopMenu = () => {
+          header.querySelectorAll('.bci-header__subnav-menu details[open]').forEach((detail) => {
+            if (detail !== desktopDetails) detail.removeAttribute('open');
+          });
+          syncMegaState(true);
+          if (desktopMega) requestAnimationFrame(() => desktopMega.focus());
+        };
+
+        syncMegaState(desktopDetails.open);
+
+        desktopSummary.addEventListener('click', (event) => {
+          event.preventDefault();
+          if (isMegaOpen) {
+            closeDesktopMenu();
+          } else {
+            openDesktopMenu();
+          }
+        });
+
+        if (desktopMega) {
+          desktopMega.addEventListener('click', (event) => {
+            event.stopPropagation();
+          });
+        }
+
+        document.addEventListener('click', (event) => {
+          if (!header.contains(event.target)) {
+            closeDesktopMenu();
+            if (!subnavDefaultVisible) setSubnavState(false);
+          }
+        });
+
+        header.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && isMegaOpen) {
+            closeDesktopMenu({ restoreFocus: true });
+          } else if (event.key === 'Escape' && !subnavDefaultVisible) {
+            setSubnavState(false);
+          }
+        });
+
+        if (shopToggle && subnavRow) {
+          shopToggle.addEventListener('click', () => {
+            if (isMegaOpen) {
+              closeDesktopMenu();
+              if (!subnavDefaultVisible) setSubnavState(false);
+              return;
+            }
+            if (!subnavDefaultVisible) setSubnavState(true);
+            openDesktopMenu();
+          });
+        }
+      }
+
+      const mobileOverlay = header.querySelector('[data-bci-mobile-overlay]');
+      const mobileOpenButton = header.querySelector('[data-bci-mobile-open]');
+      const mobileCloseButtons = header.querySelectorAll('[data-bci-mobile-close]');
+      const mobileSearchContainer = header.querySelector('.bci-header__mobile-search-form-container');
+      const mobileSearchInput = header.querySelector('.bci-header__mobile-search-input');
+      const mobileSearchReset = header.querySelector('.bci-header__mobile-search-reset');
+
+      const syncMobileSearchState = () => {
+        if (!mobileSearchContainer || !mobileSearchInput) return;
+
+        const hasValue = Boolean(mobileSearchInput.value.trim());
+        const isFocused = mobileSearchContainer.contains(document.activeElement);
+
+        mobileSearchContainer.classList.toggle('is-active', hasValue || isFocused);
+        mobileSearchReset?.classList.toggle('is-empty', !hasValue);
+      };
+
+      const deactivateMobileSearchState = () => {
+        if (!mobileSearchContainer) return;
+
+        mobileSearchContainer.classList.remove('is-active');
+        mobileSearchReset?.classList.add('is-empty');
+      };
+
+      const setMobileMenuState = (isOpen) => {
+        if (!mobileOverlay) return;
+
+        mobileOverlay.hidden = !isOpen;
+        document.body.classList.toggle('overflow-hidden', isOpen);
+        document.documentElement.classList.toggle('overflow-hidden', isOpen);
+        header.closest('.section-header')?.classList.toggle('menu-open', isOpen);
+
+        if (isOpen) {
+          syncMobileSearchState();
+        }
+      };
+
+      if (mobileSearchContainer && mobileSearchInput) {
+        mobileSearchInput.addEventListener('focus', syncMobileSearchState);
+        mobileSearchInput.addEventListener('input', syncMobileSearchState);
+        mobileSearchInput.addEventListener('blur', () => {
+          requestAnimationFrame(syncMobileSearchState);
+        });
+
+        mobileSearchReset?.addEventListener('click', () => {
+          requestAnimationFrame(() => {
+            mobileSearchInput.blur();
+            deactivateMobileSearchState();
+          });
+        });
+
+        syncMobileSearchState();
+      }
+
+      if (mobileOpenButton && mobileOverlay) {
+        mobileOpenButton.addEventListener('click', () => setMobileMenuState(true));
+
+        mobileCloseButtons.forEach((button) => {
+          button.addEventListener('click', () => setMobileMenuState(false));
+        });
+
+        header.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setMobileMenuState(false);
+        });
+
+        window.addEventListener('resize', () => {
+          if (window.innerWidth >= 990 && !mobileOverlay.hidden) {
+            setMobileMenuState(false);
+          }
+        });
+      }
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBciHeader);
+  } else {
+    initBciHeader();
+  }
+
+  document.addEventListener('shopify:section:load', initBciHeader);
+{% endjavascript %}
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    {% if settings.logo %}
+      "logo": {{ settings.logo | image_url: width: 500 | prepend: "https:" | json }},
+    {% endif %}
+    "sameAs": [
+      {{ settings.social_twitter_link | json }},
+      {{ settings.social_facebook_link | json }},
+      {{ settings.social_pinterest_link | json }},
+      {{ settings.social_instagram_link | json }},
+      {{ settings.social_tiktok_link | json }},
+      {{ settings.social_tumblr_link | json }},
+      {{ settings.social_snapchat_link | json }},
+      {{ settings.social_youtube_link | json }},
+      {{ settings.social_vimeo_link | json }}
+    ],
+    "url": {{ request.origin | append: page.url | json }}
+  }
+</script>
+
+{%- if request.page_type == 'index' -%}
+  {% assign potential_action_target = request.origin | append: routes.search_url | append: '?q={search_term_string}' %}
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": {{ shop.name | json }},
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {{ potential_action_target | json }},
+        "query-input": "required name=search_term_string"
+      },
+      "url": {{ request.origin | append: page.url | json }}
+    }
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "section-header",
+  "max_blocks": 30,
+  "settings": [
+    {
+      "type": "select",
+      "id": "logo_position",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "t:sections.header.settings.logo_position.options__2.label"
+        },
+        {
+          "value": "top-center",
+          "label": "t:sections.header.settings.logo_position.options__3.label"
+        },
+        {
+          "value": "middle-left",
+          "label": "t:sections.header.settings.logo_position.options__1.label"
+        },
+        {
+          "value": "middle-center",
+          "label": "t:sections.header.settings.logo_position.options__4.label"
+        }
+      ],
+      "default": "middle-left",
+      "label": "t:sections.header.settings.logo_position.label",
+      "info": "t:sections.header.settings.logo_help.content"
+    },
+    {
+      "type": "select",
+      "id": "mobile_logo_position",
+      "options": [
+        {
+          "value": "center",
+          "label": "t:sections.header.settings.mobile_logo_position.options__1.label"
+        },
+        {
+          "value": "left",
+          "label": "t:sections.header.settings.mobile_logo_position.options__2.label"
+        }
+      ],
+      "default": "center",
+      "label": "t:sections.header.settings.mobile_logo_position.label"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    },
+    {
+      "type": "select",
+      "id": "menu_type_desktop",
+      "options": [
+        {
+          "value": "dropdown",
+          "label": "t:sections.header.settings.menu_type_desktop.options__1.label"
+        },
+        {
+          "value": "mega",
+          "label": "t:sections.header.settings.menu_type_desktop.options__2.label"
+        },
+        {
+          "value": "drawer",
+          "label": "t:sections.header.settings.menu_type_desktop.options__3.label"
+        }
+      ],
+      "default": "dropdown",
+      "label": "t:sections.header.settings.menu_type_desktop.label"
+    },
+    {
+      "type": "select",
+      "id": "sticky_header_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:sections.header.settings.sticky_header_type.options__1.label"
+        },
+        {
+          "value": "on-scroll-up",
+          "label": "t:sections.header.settings.sticky_header_type.options__2.label"
+        },
+        {
+          "value": "always",
+          "label": "t:sections.header.settings.sticky_header_type.options__3.label"
+        },
+        {
+          "value": "reduce-logo-size",
+          "label": "t:sections.header.settings.sticky_header_type.options__4.label"
+        }
+      ],
+      "default": "on-scroll-up",
+      "label": "t:sections.header.settings.sticky_header_type.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_line_separator",
+      "default": true,
+      "label": "t:sections.header.settings.show_line_separator.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.header.settings.header__1.content"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "menu_color_scheme",
+      "label": "t:sections.header.settings.menu_color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "BCI navigation"
+    },
+    {
+      "type": "text",
+      "id": "shop_all_brands_label",
+      "label": "Shop all brands button label",
+      "default": "(+) Shop All Brands"
+    },
+    {
+      "type": "header",
+      "content": "BCI branding"
+    },
+    {
+      "type": "image_picker",
+      "id": "header_logo_image",
+      "label": "Header logo"
+    },
+    {
+      "type": "range",
+      "id": "header_logo_height",
+      "min": 10,
+      "max": 70,
+      "step": 1,
+      "unit": "px",
+      "label": "Header logo height",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "BCI menu previews"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.header.settings.header__utilities.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "default": true,
+      "label": "t:sections.header.settings.enable_country_selector.label",
+      "info": "t:sections.header.settings.enable_country_selector.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "default": true,
+      "label": "t:sections.header.settings.enable_language_selector.label",
+      "info": "t:sections.header.settings.enable_language_selector.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_customer_avatar",
+      "default": true,
+      "label": "t:sections.header.settings.enable_customer_avatar.label",
+      "info": "t:sections.header.settings.enable_customer_avatar.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.spacing"
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.header.settings.margin_bottom.label",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 36,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 36,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "navigation_menu",
+      "name": "Navigation menu",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "select",
+          "id": "menu_group",
+          "label": "Menu group",
+          "default": "brands",
+          "options": [
+            {
+              "value": "brands",
+              "label": "Brands"
+            },
+            {
+              "value": "categories",
+              "label": "Categories"
+            }
+          ]
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu"
+        }
+      ]
+    },
+    {
+      "type": "menu_preview",
+      "name": "Menu preview",
+      "settings": [
+        {
+          "type": "select",
+          "id": "menu_group",
+          "label": "Menu group",
+          "default": "categories",
+          "options": [
+            {
+              "value": "brands",
+              "label": "Brands"
+            },
+            {
+              "value": "categories",
+              "label": "Categories"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "menu_item_label",
+          "label": "Menu item label",
+          "info": "Match this to a top-level menu item title."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Preview image"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Preview caption"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

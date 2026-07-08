@@ -1,0 +1,108 @@
+{{ 'section-bci-multicolumn-text.css' | asset_url | stylesheet_tag }}
+
+<section
+  class="bci-multicolumn-text section-{{ section.id }}"
+  style="--bci-mc-padding-top: {{ section.settings.padding_top }}px; --bci-mc-padding-bottom: {{ section.settings.padding_bottom }}px; --bci-mc-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --bci-mc-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;"
+>
+  {%- if section.settings.heading != blank -%}
+    <div class="bci-multicolumn-text__header">
+      <h2 class="bci-multicolumn-text__heading">
+        {{ section.settings.heading | escape }}
+      </h2>
+    </div>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="bci-multicolumn-text__grid">
+      {%- for block in section.blocks -%}
+        <div class="bci-multicolumn-text__column" {{ block.shopify_attributes }}>
+          {%- if block.settings.text != blank -%}
+            <div class="bci-multicolumn-text__content">
+              {{ block.settings.text }}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "BCI Multicolumn text",
+  "tag": "section",
+  "class": "section",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "A Multi Brand Platform"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "default": 118
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "default": 135
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mobile",
+      "label": "Padding top mobile (px)",
+      "default": 101
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom mobile (px)",
+      "default": 134
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text_column",
+      "name": "Text column",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Vince Camuto<br>Ted Baker<br>CeCe<br>1. State</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BCI Multicolumn text",
+      "blocks": [
+        {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>Vince Camuto<br>Ted Baker<br>CeCe<br>1. State</p>"
+          }
+        },
+        {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>Parker<br>Sam and Jess<br>MSK<br>Pisarro Nights</p>"
+          }
+        },
+        {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>JBS<br>CeCe Girls<br>Chaus<br>Cynthia Steffe</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

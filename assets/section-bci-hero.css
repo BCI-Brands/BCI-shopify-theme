@@ -1,0 +1,262 @@
+.bci-hero {
+  position: relative;
+  width: 100%;
+}
+
+.bci-hero__slider {
+  position: relative;
+  width: 100%;
+}
+
+.bci-hero__slide {
+  display: none;
+}
+
+.bci-hero__slide.is-active {
+  display: block;
+}
+
+.bci-hero__media {
+  position: relative;
+  width: 100%;
+  min-height: 680px;
+  overflow: hidden;
+  background: #f4f4f4;
+}
+
+.bci-hero--small .bci-hero__media {
+  min-height: 480px;
+}
+
+.bci-hero--large .bci-hero__media {
+  min-height: 850px;
+}
+
+.bci-hero__image,
+.bci-hero__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bci-hero__image {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+.bci-hero__image--mobile {
+  display: none;
+}
+
+.bci-hero__overlay {
+  display: block!important;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.60) 0%, rgba(0, 0, 0, 0.00) 19.61%), linear-gradient(180deg, rgba(0, 0, 0, 0.00) 71.3%, rgba(0, 0, 0, 0.80) 104.2%), url(<path-to-image>) lightgray -56.727px 0px / 103.803% 100% no-repeat;
+  pointer-events: none;
+}
+
+.bci-hero__brand {
+  position: absolute;
+  z-index: 2;
+  top: 32px;
+  left: 30px;
+}
+
+.bci-hero__brand-logo {
+  display: block;
+  width: auto;
+  max-width: 360px;
+  height: auto;
+}
+
+.bci-hero__content {
+  position: absolute;
+  z-index: 2;
+  left: 30px;
+  bottom: 32px;
+  max-width: 582px;
+  color: #ffffff;
+}
+
+.bci-hero__heading {
+  margin: 0 0 18px;
+  color: var(--White, #FFF);
+  font-family: var(--font-body-family);
+  font-size: 38px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 42px; 
+}
+
+.bci-hero__text {
+  margin: 0 0 20px;
+  color: var(--White, #FFF);
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; 
+}
+
+.bci-hero__text p {
+  margin: 0;
+}
+
+.bci-hero__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 154px;
+  min-height: 30px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  color: var(--White, #FFF);
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px; 
+  text-decoration: none;
+  height: 32px;
+}
+
+.bci-hero__arrows {
+  position: absolute;
+  z-index: 3;
+  right: 30px;
+  bottom: 32px;
+  display: flex;
+}
+
+.bci-hero__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  line-height: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.bci-hero__arrow .svg-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 10px;
+  line-height: 0;
+}
+
+.bci-hero__arrow .svg-wrapper svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* 
+.bci-hero__arrow--prev .svg-wrapper {
+  transform: rotate(180deg);
+} */
+
+.bci-hero__arrow + .bci-hero__arrow {
+  margin-left: -1px;
+}
+
+.bci-hero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.60) 0%,
+      rgba(0, 0, 0, 0) 19.61%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 71.3%,
+      rgba(0, 0, 0, 0.80) 104.2%
+    );
+}
+
+@media screen and (max-width: 749px) {
+  .bci-hero__media {
+    min-height: 0;
+    aspect-ratio: 375 / 520;
+  }
+
+  .bci-hero--small .bci-hero__media {
+    min-height: 0;
+    aspect-ratio: 375 / 420;
+  }
+
+  .bci-hero--large .bci-hero__media {
+    min-height: 0;
+    aspect-ratio: 375 / 620;
+  }
+
+  .bci-hero__image--desktop {
+    display: none;
+  }
+
+  .bci-hero__image--mobile {
+    display: block;
+  }
+
+  .bci-hero__brand {
+    top: 13px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .bci-hero__brand-logo {
+    max-width: 260px;
+  }
+
+  .bci-hero__content {
+    left: 10px;
+    right: 10px;
+    bottom: 20px;
+    max-width: none;
+  }
+
+  .bci-hero__arrows {
+    right: 10px;
+    bottom: 20px;
+  }
+
+  .bci-hero__heading {
+    margin-bottom: 18px;
+    font-size: 30px;
+    line-height: 1.1;
+  }
+
+  .bci-hero__text {
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .bci-hero__button {
+    min-width: 154px;
+    min-height: 30px;
+    font-size: 13px;
+  }
+
+  /* .bci-hero__arrows {
+    display: none;
+  } */
+}

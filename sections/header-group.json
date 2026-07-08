@@ -1,0 +1,280 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "t:sections.header.name",
+  "type": "header",
+  "sections": {
+    "header": {
+      "type": "header",
+      "blocks": {
+        "navigation_menu_WVGHRQ": {
+          "type": "navigation_menu",
+          "settings": {
+            "menu_group": "brands",
+            "menu": "brands-menu"
+          }
+        },
+        "navigation_menu_89ng9T": {
+          "type": "navigation_menu",
+          "settings": {
+            "menu_group": "categories",
+            "menu": "categories-menu"
+          }
+        },
+        "menu_preview_mgwEKh": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Vince Camuto",
+            "image": "shopify://shop_images/slide-3.png",
+            "caption": "Vince Camuto"
+          }
+        },
+        "menu_preview_PQzKbn": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Ted Baker",
+            "image": "shopify://shop_images/slide-2.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_mGPgPK": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Cece",
+            "image": "shopify://shop_images/hero-1.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_3tz8AB": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Cece Girls",
+            "image": "shopify://shop_images/slide-2.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_XWzcKV": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "1. State",
+            "image": "shopify://shop_images/winter-seasonal-collection.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_TYRqBg": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Parker",
+            "image": "shopify://shop_images/lifestyle-collection-banner.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_paHW6b": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Sam and Jess",
+            "image": "shopify://shop_images/CeCe_Girls.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_tKQYWj": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "MSK",
+            "image": "shopify://shop_images/CeCe_Girls-desktop.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_BYaKNT": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Pisarro Nights",
+            "image": "shopify://shop_images/hero-3.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_JrwXpG": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "JBS",
+            "image": "shopify://shop_images/Vince_Camuto-desktop-3.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_7ppnAb": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Chaus",
+            "image": "shopify://shop_images/Vince_Camuto-desktop-2.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_nTYT9i": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "brands",
+            "menu_item_label": "Cynthia Steffe",
+            "image": "shopify://shop_images/hero-2.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_6BGHHP": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "View All",
+            "image": "shopify://shop_images/winter-seasonal-collection.png",
+            "caption": "View All"
+          }
+        },
+        "menu_preview_nPHdLw": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "New Arrivals",
+            "image": "shopify://shop_images/Ted_Baker-desktop.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_xaWpJU": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Best Sellers",
+            "image": "shopify://shop_images/Vince_Camuto-mobile-2.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_qKnAUp": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Tops",
+            "image": "shopify://shop_images/Vince_Camuto-desktop-1.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_fADCTV": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Dresses",
+            "image": "shopify://shop_images/Ted_Baker-desktop-2.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_FkWqEC": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Pants & Jeans",
+            "image": "shopify://shop_images/slide-1.jpg",
+            "caption": ""
+          }
+        },
+        "menu_preview_H7MFag": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Shorts & Skirts",
+            "image": "shopify://shop_images/lifestyle-collection-banner.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_4MF3aR": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Jackets & Outerwear",
+            "image": "shopify://shop_images/winter-seasonal-collection.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_DhHinp": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Jumpsuits & Rompers",
+            "image": "shopify://shop_images/hero-1.png",
+            "caption": ""
+          }
+        },
+        "menu_preview_aBCpAK": {
+          "type": "menu_preview",
+          "settings": {
+            "menu_group": "categories",
+            "menu_item_label": "Sets",
+            "image": "shopify://shop_images/Ted_Baker-desktop.jpg",
+            "caption": ""
+          }
+        }
+      },
+      "block_order": [
+        "navigation_menu_WVGHRQ",
+        "navigation_menu_89ng9T",
+        "menu_preview_mgwEKh",
+        "menu_preview_PQzKbn",
+        "menu_preview_mGPgPK",
+        "menu_preview_3tz8AB",
+        "menu_preview_XWzcKV",
+        "menu_preview_TYRqBg",
+        "menu_preview_paHW6b",
+        "menu_preview_tKQYWj",
+        "menu_preview_BYaKNT",
+        "menu_preview_JrwXpG",
+        "menu_preview_7ppnAb",
+        "menu_preview_nTYT9i",
+        "menu_preview_6BGHHP",
+        "menu_preview_nPHdLw",
+        "menu_preview_xaWpJU",
+        "menu_preview_qKnAUp",
+        "menu_preview_fADCTV",
+        "menu_preview_FkWqEC",
+        "menu_preview_H7MFag",
+        "menu_preview_4MF3aR",
+        "menu_preview_DhHinp",
+        "menu_preview_aBCpAK"
+      ],
+      "settings": {
+        "logo_position": "middle-left",
+        "mobile_logo_position": "center",
+        "menu": "main-menu",
+        "menu_type_desktop": "dropdown",
+        "sticky_header_type": "always",
+        "show_line_separator": true,
+        "color_scheme": "scheme-02d25a14-187e-4a71-bf11-1d9ee44dc1b9",
+        "menu_color_scheme": "scheme-1",
+        "shop_all_brands_label": "(+) Shop All Brands",
+        "header_logo_image": "shopify://shop_images/BCI_BRANDS_Horiz.svg",
+        "header_logo_height": 20,
+        "enable_country_selector": true,
+        "enable_language_selector": true,
+        "enable_customer_avatar": true,
+        "margin_bottom": 0,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    }
+  },
+  "order": [
+    "header"
+  ]
+}

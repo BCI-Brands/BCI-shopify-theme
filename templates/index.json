@@ -1,0 +1,247 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "bci_hero_eggnLh": {
+      "type": "bci-hero",
+      "blocks": {
+        "slide_qqpPG8": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/slide-3.png",
+            "logo_image": "shopify://shop_images/Vince_Camuto_Logo_9f4cccbd-5335-4f63-abf1-c44b0b0ef711.svg",
+            "heading": "Vince Camuto Bestsellers",
+            "text": "<p>Lorem ipsum dolor sit amet para eunitupo<br/>treui lorem ipsum dolor sit amet</p>",
+            "button_label": "Shop Vince Camuto",
+            "button_link": "shopify://collections/vince-camuto"
+          }
+        },
+        "slide_zpLWwr": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/slide-1.jpg",
+            "logo_image": "shopify://shop_images/CeCe_Logo.svg",
+            "heading": "S/S 2026 Collection",
+            "text": "<p>Lorem ipsum dolor sit amet para eunitupo<br/>treui lorem ipsum dolor sit amet</p>",
+            "button_label": "Shop CeCe",
+            "button_link": "shopify://collections/cece"
+          }
+        },
+        "slide_BrGQnF": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/slide-2.jpg",
+            "heading": "CeCe New Arrivals",
+            "text": "<p>Lorem ipsum dolor sit amet para eunitupo<br/>treui lorem ipsum dolor sit amet</p>",
+            "button_label": "Shop CeCe",
+            "button_link": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_qqpPG8",
+        "slide_zpLWwr",
+        "slide_BrGQnF"
+      ],
+      "name": "BCI Hero slideshow",
+      "settings": {
+        "slide_height": "medium",
+        "auto_rotate": true,
+        "change_slides_speed": 5
+      }
+    },
+    "bci_featured_cards_tPjqFU": {
+      "type": "bci-featured-cards",
+      "blocks": {
+        "card_peLbV6": {
+          "type": "card",
+          "settings": {
+            "title": "Vince Camuto",
+            "image": "shopify://shop_images/Vince_Camuto-desktop-1.jpg",
+            "logo_image": "shopify://shop_images/Vince_Camuto_Logo.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/vince-camuto"
+          }
+        },
+        "card_tWDHaj": {
+          "type": "card",
+          "settings": {
+            "title": "Ted Baker",
+            "image": "shopify://shop_images/Ted_Baker-mobile-1.jpg",
+            "logo_image": "shopify://shop_images/Ted_Baker_Logo.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/ted-baker"
+          }
+        },
+        "card_WPLKX4": {
+          "type": "card",
+          "settings": {
+            "title": "CeCe",
+            "image": "shopify://shop_images/CeCe.jpg",
+            "logo_image": "shopify://shop_images/CeCe.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/cece"
+          }
+        },
+        "card_QHrBKW": {
+          "type": "card",
+          "settings": {
+            "title": "CeCe Girls",
+            "image": "shopify://shop_images/CeCe_Girls-desktop.jpg",
+            "logo_image": "shopify://shop_images/CeCe_Girls.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/cece-girls"
+          }
+        }
+      },
+      "block_order": [
+        "card_peLbV6",
+        "card_tWDHaj",
+        "card_WPLKX4",
+        "card_QHrBKW"
+      ],
+      "name": "BCI Featured cards",
+      "settings": {
+        "heading": "Featured Brands",
+        "padding_top": 10,
+        "padding_bottom": 34,
+        "padding_top_mobile": 18,
+        "padding_bottom_mobile": 10,
+        "desktop_columns": "4"
+      }
+    },
+    "bci_product_showcase_NqiiaQ": {
+      "type": "bci-product-showcase",
+      "name": "BCI Product showcase",
+      "settings": {
+        "heading": "Shop New Arrivals",
+        "collection": "new-arrivals",
+        "padding_top": 20,
+        "padding_bottom": 20,
+        "padding_top_mobile": 18,
+        "padding_bottom_mobile": 20,
+        "products_to_show": 10
+      }
+    },
+    "bci_featured_cards_tVWhAJ": {
+      "type": "bci-featured-cards",
+      "blocks": {
+        "card_XkHBCF": {
+          "type": "card",
+          "settings": {
+            "title": "Ted Baker Bestsellers",
+            "image": "shopify://shop_images/Ted_Baker_London_Bestsellers.png",
+            "logo_image": "shopify://shop_images/Ted_Baker_Logo.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/ted-baker"
+          }
+        },
+        "card_LrHp8x": {
+          "type": "card",
+          "settings": {
+            "title": "CeCe Featured Collection",
+            "image": "shopify://shop_images/CeCe_Featured_Collection.jpg",
+            "logo_image": "shopify://shop_images/CeCe.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/cece"
+          }
+        },
+        "card_ijwm38": {
+          "type": "card",
+          "settings": {
+            "title": "Pisarro Nights Dresses",
+            "image": "shopify://shop_images/Pisarro_Nights_Dresses.png",
+            "logo_image": "shopify://shop_images/Pisarro_Nights.svg",
+            "logo_width": 120,
+            "logo_position": "bottom-left",
+            "link": "shopify://collections/pisarro-nights"
+          }
+        }
+      },
+      "block_order": [
+        "card_XkHBCF",
+        "card_LrHp8x",
+        "card_ijwm38"
+      ],
+      "name": "BCI Featured cards",
+      "settings": {
+        "heading": "",
+        "padding_top": 34,
+        "padding_bottom": 16,
+        "padding_top_mobile": 20,
+        "padding_bottom_mobile": 10,
+        "desktop_columns": "3"
+      }
+    },
+    "bci_product_showcase_VgiBdC": {
+      "type": "bci-product-showcase",
+      "name": "BCI Product showcase",
+      "settings": {
+        "heading": "Shop Bestsellers",
+        "collection": "best-sellers",
+        "padding_top": 20,
+        "padding_bottom": 0,
+        "padding_top_mobile": 10,
+        "padding_bottom_mobile": 20,
+        "products_to_show": 10
+      }
+    },
+    "bci_multicolumn_text_6JEqiV": {
+      "type": "bci-multicolumn-text",
+      "blocks": {
+        "text_column_ntpnTK": {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>Vince Camuto<br/>Ted Baker<br/>CeCe<br/>1. State</p>"
+          }
+        },
+        "text_column_gDaQMa": {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>Parker<br>Sam and Jess<br>MSK<br>Pisarro Nights</p>"
+          }
+        },
+        "text_column_W9TDcD": {
+          "type": "text_column",
+          "settings": {
+            "text": "<p>JBS<br>CeCe Girls<br>Chaus<br>Cynthia Steffe</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_column_ntpnTK",
+        "text_column_gDaQMa",
+        "text_column_W9TDcD"
+      ],
+      "name": "BCI Multicolumn text",
+      "settings": {
+        "heading": "A Multi Brand Platform",
+        "padding_top": 118,
+        "padding_bottom": 135,
+        "padding_top_mobile": 20,
+        "padding_bottom_mobile": 134
+      }
+    }
+  },
+  "order": [
+    "bci_hero_eggnLh",
+    "bci_featured_cards_tPjqFU",
+    "bci_product_showcase_NqiiaQ",
+    "bci_featured_cards_tVWhAJ",
+    "bci_product_showcase_VgiBdC",
+    "bci_multicolumn_text_6JEqiV"
+  ]
+}
