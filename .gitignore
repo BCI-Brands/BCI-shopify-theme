@@ -1,0 +1,13 @@
+# Shopify CLI local state
+.shopify/
+
+# Claude Code local overrides (project settings.json stays tracked)
+.claude/settings.local.json
+.claude/plans/
+
+# OS / OneDrive noise
+.DS_Store
+Thumbs.db
+desktop.ini
+node_modules/
+.env
