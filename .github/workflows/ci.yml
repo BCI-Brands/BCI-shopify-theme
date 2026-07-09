@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  theme-check:
+    name: Theme Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shopify/theme-check-action@v2
+        with:
+          theme_root: '.'
+
+  deploy-staging:
+    name: Deploy to staging theme (dev store)
+    # Skips until STAGING_THEME_ID repo variable and SHOPIFY_CLI_THEME_TOKEN secret are configured.
+    # Pushes only to an explicit theme ID on the dev store; CLI refuses live themes non-interactively.
+    if: github.event_name != 'pull_request' && vars.STAGING_THEME_ID != ''
+    needs: theme-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g @shopify/cli
+      - name: Push theme to staging
+        run: shopify theme push --store bcibrands-devstore.myshopify.com --theme "$STAGING_THEME_ID"
+        env:
+          STAGING_THEME_ID: ${{ vars.STAGING_THEME_ID }}
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
