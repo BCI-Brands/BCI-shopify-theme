@@ -1,0 +1,14 @@
+# Baseline for `shopify theme check`: silences offenses pre-existing in the
+# theme as pulled from the store (Dawn 15.4.1 + BCI customizations), so check
+# output only flags NEW problems. Remove entries as underlying issues get fixed.
+
+# Custom strings live only in locales/en.default.json; the other stock Dawn
+# locale files are intentionally left untranslated.
+MatchingTranslations:
+  ignore:
+    - locales/*
+
+# Pre-existing schema translation offenses in stock section as pulled.
+ValidSchemaTranslations:
+  ignore:
+    - sections/featured-product.liquid
